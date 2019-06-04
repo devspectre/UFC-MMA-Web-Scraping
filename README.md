@@ -1,5 +1,5 @@
 # mma_scraper
-Get rich history mma fights
+Get rich history of mma fights
 
 # Dependency
 Python: 3
