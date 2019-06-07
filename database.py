@@ -6,12 +6,15 @@ class UFCHistoryDB:
 	""" manages sqlite database
 	"""
 
-	def __init__(self, db_file):
+	def __init__(self, db_file, delete_if_exists = False):
 		""" constructor """
 
 		self.db_file_ = db_file
 
-		self.delete_database()
+		# is_db_file_deleted = self.delete_database()
+		if delete_if_exists and os.path.isfile(db_file):
+			if is_db_file_deleted == False:
+				exit()
 		
 		self.conn = self.create_connection(db_file)
 
@@ -88,7 +91,7 @@ class UFCHistoryDB:
 					id integer NOT NULL,
 					match_date text NOT NULL,
 					opponent text NOT NULL,
-					opp_url text NOT NULL,
+					opp_url text,
 					sdbl_a text,
 					sdhl_a text,
 					sdll_a text,
@@ -107,7 +110,7 @@ class UFCHistoryDB:
 					id integer NOT NULL,
 					match_date text NOT NULL,
 					opponent text NOT NULL,
-					opp_url text NOT NULL,
+					opp_url text,
 					scbl text,
 					scba text,
 					schl text,
@@ -126,7 +129,7 @@ class UFCHistoryDB:
 					id integer NOT NULL,
 					match_date text NOT NULL,
 					opponent text NOT NULL,
-					opp_url text NOT NULL,
+					opp_url text,
 					sgbl text,
 					sgba text,
 					sghl text,
@@ -152,8 +155,10 @@ class UFCHistoryDB:
 
 		try:
 			os.remove(self.db_file_)
+			return True
 		except Exception as e:
-			pass
+			print(f'Error(DB.delete_database): {str(e)}')
+			return False
 		
 
 	def reconnect_database(self, db_file):
@@ -213,8 +218,12 @@ class UFCHistoryDB:
 			val = None
 
 			try:
-				val = (id_, item['DATE'], item['EVENT'], item['OPPONENT'], item['opp_url'], item['RESULT']
-					, item['DECISION'], item['RND'], item['TIME'])
+				if 'opp_url' in item:
+					val = (id_, item['DATE'], item['EVENT'], item['OPPONENT'], item['opp_url'], item['RESULT']
+						, item['DECISION'], item['RND'], item['TIME'])
+				else:
+					val = (id_, item['DATE'], item['EVENT'], item['OPPONENT'], None, item['RESULT']
+						, item['DECISION'], item['RND'], item['TIME'])
 			except Exception as e:
 				print("Error(DB.History): ", e)
 
@@ -240,8 +249,12 @@ class UFCHistoryDB:
 			val = None
 
 			try:
-				val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SDBL/A'], item['SDHL/A'], item['SDLL/A']
-					, item['TSL'], item['TSA'], item['SSL'], item['SA'], item['KD'], item['PERCENTBODY'], item['PERCENTHEAD'], item['PERCENTLEG'])
+				if 'opp_url' in item:
+					val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SDBL/A'], item['SDHL/A'], item['SDLL/A']
+						, item['TSL'], item['TSA'], item['SSL'], item['SA'], item['KD'], item['PERCENTBODY'], item['PERCENTHEAD'], item['PERCENTLEG'])
+				else:
+					val = (id_, item['DATE'], item['OPP'], None, item['SDBL/A'], item['SDHL/A'], item['SDLL/A']
+						, item['TSL'], item['TSA'], item['SSL'], item['SA'], item['KD'], item['PERCENTBODY'], item['PERCENTHEAD'], item['PERCENTLEG'])
 			except Exception as e:
 				print("Error(DB.StandingStatistics): ", e)
 
@@ -267,8 +280,12 @@ class UFCHistoryDB:
 			val = None
 
 			try:
-				val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SCBL'], item['SCBA'], item['SCHL']
-					, item['SCHA'], item['SCLL'], item['SCLA'], item['RV'], item['SR'], item['TDL'], item['TDA'], item['TDS'], item['TDPERCENT'])
+				if 'opp_url' in item:
+					val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SCBL'], item['SCBA'], item['SCHL']
+						, item['SCHA'], item['SCLL'], item['SCLA'], item['RV'], item['SR'], item['TDL'], item['TDA'], item['TDS'], item['TDPERCENT'])
+				else:
+					val = (id_, item['DATE'], item['OPP'], None, item['SCBL'], item['SCBA'], item['SCHL']
+						, item['SCHA'], item['SCLL'], item['SCLA'], item['RV'], item['SR'], item['TDL'], item['TDA'], item['TDS'], item['TDPERCENT'])
 			except Exception as e:
 				print("Error(DB.ClinchStatistics): ", e)
 
@@ -294,8 +311,12 @@ class UFCHistoryDB:
 			val = None
 
 			try:
-				val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SGBL'], item['SGBA'], item['SGHL']
-					, item['SGHA'], item['SGLL'], item['SGLA'], item['AD'], item['ADTB'], item['ADHG'], item['ADTM'], item['ADTS'], item['SM'])
+				if 'opp_url' in item:
+					val = (id_, item['DATE'], item['OPP'], item['opp_url'], item['SGBL'], item['SGBA'], item['SGHL']
+						, item['SGHA'], item['SGLL'], item['SGLA'], item['AD'], item['ADTB'], item['ADHG'], item['ADTM'], item['ADTS'], item['SM'])
+				else:
+					val = (id_, item['DATE'], item['OPP'], None, item['SGBL'], item['SGBA'], item['SGHL']
+						, item['SGHA'], item['SGLL'], item['SGLA'], item['AD'], item['ADTB'], item['ADHG'], item['ADTM'], item['ADTS'], item['SM'])
 			except Exception as e:
 				print("Error(DB.GroundStatistics): ", e)
 
@@ -310,11 +331,244 @@ class UFCHistoryDB:
 	def get_rows_for_schema(self):
 		""" get all rows to be written onto the excel file
 		param:
-		return:
+		return: list of rows
 		"""
 
-		
+		# make a query to get initial data
+		sql = """SELECT History.match_date, Fighters.weight_class, History.decision, History.rnd, History.match_time, 
+						History.event, Fighters.id, Fighters.name, Fighters.height, Fighters.reach, Fighters.age, Fighters.url, 
+						History.opponent, History.result, History.opp_url
+						FROM Fighters, History WHERE Fighters.id == History.id
+						ORDER BY match_date ASC"""
+
+		# list of dictionaries, each dictionary contains a match information fit for schema
+		# NOTE: Using dictionary rather than list makes it easier to change/revise and maintain
+		# can easily understand what is what
+		match_list = []
+
+		for row in self.c.execute(sql).fetchall():
+			# print(row)
+			# dictionary to contain match information
+			dictionary = {}
+
+			# General Info (From Fight History Page)
+			dictionary['Date'] = row[0]
+			dictionary['WeightClass'] = row[1]
+
+			if row[13] == 'Win':
+				dictionary['Winner'] = row[7]
+			elif row[13] == 'Loss':
+				dictionary['Winner'] = row[12]
+			else:
+				dictionary['Winner'] = ''
+
+			dictionary['DecisionType'] = row[2]
+			dictionary['Rounds'] = row[3]
+			dictionary['Time'] = row[4]
+			dictionary['IsTitle?'] = row[5]
+
+			# F1 Fighter Info
+
+			dictionary['F1Id'] = row[6]
+			dictionary['F1Name'] = row[7]
+			dictionary['F1Height'] = row[8]
+			dictionary['F1Reach'] = row[9]
+			dictionary['F1Age'] = row[10]
+
+			# F1 Striking Stats
+
+			sql = """ SELECT sdbl_a, sdhl_a, sdll_a, tsl, tsa, ssl, ssa, sa, kd 
+								FROM StandingStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (row[6], row[0])
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F1SDBL'] = sql_result[0].split('/')[0] if '/' in sql_result[0] else ''
+					dictionary['F1SDBA'] = sql_result[0].split('/')[1] if '/' in sql_result[0] else ''
+					dictionary['F1SDHL'] = sql_result[1].split('/')[0] if '/' in sql_result[1] else ''
+					dictionary['F1SDHA'] = sql_result[1].split('/')[1] if '/' in sql_result[1] else ''
+					dictionary['F1SDLL'] = sql_result[2].split('/')[0] if '/' in sql_result[2] else ''
+					dictionary['F1SDLA'] = sql_result[2].split('/')[1] if '/' in sql_result[2] else ''
+					dictionary['F1TSL'] = sql_result[3]
+					dictionary['F1TSA'] = sql_result[4]
+					dictionary['F1SSL'] = sql_result[5]
+					dictionary['F1SSA'] = sql_result[6]
+					dictionary['F1SA'] = sql_result[7]
+					dictionary['F1KD'] = sql_result[8]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get StandingStatistics information due to above error.")
+
+			# F1 Clinch Stats
+
+			sql = """ SELECT scbl, scba, schl, scha, scll, scla, rv, sr, tdl, tda, tds 
+								FROM ClinchStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (row[6], row[0])
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F1SCBL'] = sql_result[0]
+					dictionary['F1SCBA'] = sql_result[1]
+					dictionary['F1SCHL'] = sql_result[2]
+					dictionary['F1SCHA'] = sql_result[3]
+					dictionary['F1SCLL'] = sql_result[4]
+					dictionary['F1SCLA'] = sql_result[5]
+					dictionary['F1RV'] = sql_result[6]
+					dictionary['F1SR'] = sql_result[7]
+					dictionary['F1TDL'] = sql_result[8]
+					dictionary['F1TDA'] = sql_result[9]
+					dictionary['F1TDS'] = sql_result[10]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get ClinchStatistics information due to above error.")
+
+			# F1 Ground Stats
+
+			sql_gs = """ SELECT sgbl, sgba, sghl, sgha, sgll, sgla, ad, adtb, adhg, adtm, adts, sm 
+								FROM GroundStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (row[6], row[0])
+
+			try:
+				sql_result = self.c.execute(sql_gs, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F1SGBL'] = sql_result[0]
+					dictionary['F1SGBA'] = sql_result[1]
+					dictionary['F1SGHL'] = sql_result[2]
+					dictionary['F1SGHA'] = sql_result[3]
+					dictionary['F1SGLL'] = sql_result[4]
+					dictionary['F1SGLA'] = sql_result[5]
+					dictionary['F1AD'] = sql_result[6]
+					dictionary['F1ADTB'] = sql_result[7]
+					dictionary['F1ADHG'] = sql_result[8]
+					dictionary['F1ADTM'] = sql_result[9]
+					dictionary['F1ADTS'] = sql_result[10]
+					dictionary['F1SM'] = sql_result[11]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get GroundStatistics information due to above error.")
+
+			# F2 Fighter Info
+			
+			sql = """SELECT Fighters.id, Fighters.name, Fighters.height, Fighters.reach, Fighters.age, Fighters.url 
+							FROM Fighters WHERE Fighters.name=? AND Fighters.url=?
+			"""
+
+			val = (row[12], row[14])
+			# print(val)
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 4:
+					dictionary['F2Id'] = sql_result[0]
+					dictionary['F2Name'] = sql_result[1]
+					dictionary['F2Height'] = sql_result[2]
+					dictionary['F2Reach'] = sql_result[3]
+					dictionary['F2Age'] = sql_result[4]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get fighter 2 information due to above error.")
+
+			if 'F2Id' not in dictionary: # skip over if identifier of fighter 2 is not avaiable
+				continue
+
+			# F2 Striking Stats
+
+			sql = """ SELECT sdbl_a, sdhl_a, sdll_a, tsl, tsa, ssl, ssa, sa, kd 
+								FROM StandingStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (dictionary['F2Id'], row[0])
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F2SDBL'] = sql_result[0].split('/')[0] if '/' in sql_result[0] else ''
+					dictionary['F2SDBA'] = sql_result[0].split('/')[1] if '/' in sql_result[0] else ''
+					dictionary['F2SDHL'] = sql_result[1].split('/')[0] if '/' in sql_result[1] else ''
+					dictionary['F2SDHA'] = sql_result[1].split('/')[1] if '/' in sql_result[1] else ''
+					dictionary['F2SDLL'] = sql_result[2].split('/')[0] if '/' in sql_result[2] else ''
+					dictionary['F2SDLA'] = sql_result[2].split('/')[1] if '/' in sql_result[2] else ''
+					dictionary['F2TSL'] = sql_result[3]
+					dictionary['F2TSA'] = sql_result[4]
+					dictionary['F2SSL'] = sql_result[5]
+					dictionary['F2SSA'] = sql_result[6]
+					dictionary['F2SA'] = sql_result[7]
+					dictionary['F2KD'] = sql_result[8]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get StandingStatistics information due to above error(F2).")
+
+			# F2 Clinch Stats
+
+			sql = """ SELECT scbl, scba, schl, scha, scll, scla, rv, sr, tdl, tda, tds 
+								FROM ClinchStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (dictionary['F2Id'], row[0])
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F2SCBL'] = sql_result[0]
+					dictionary['F2SCBA'] = sql_result[1]
+					dictionary['F2SCHL'] = sql_result[2]
+					dictionary['F2SCHA'] = sql_result[3]
+					dictionary['F2SCLL'] = sql_result[4]
+					dictionary['F2SCLA'] = sql_result[5]
+					dictionary['F2RV'] = sql_result[6]
+					dictionary['F2SR'] = sql_result[7]
+					dictionary['F2TDL'] = sql_result[8]
+					dictionary['F2TDA'] = sql_result[9]
+					dictionary['F2TDS'] = sql_result[10]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get ClinchStatistics information due to above error(F2).")
+
+			# F2 Ground Stats
+
+			sql = """ SELECT sgbl, sgba, sghl, sgha, sgll, sgla, ad, adtb, adhg, adtm, adts, sm 
+								FROM GroundStatistics WHERE id=? AND match_date=?
+			"""
+
+			val = (dictionary['F2Id'], row[0])
+
+			try:
+				sql_result = self.c.execute(sql, val).fetchone()
+				if sql_result is not None and len(sql_result) > 0:
+					dictionary['F2SGBL'] = sql_result[0]
+					dictionary['F2SGBA'] = sql_result[1]
+					dictionary['F2SGHL'] = sql_result[2]
+					dictionary['F2SGHA'] = sql_result[3]
+					dictionary['F2SGLL'] = sql_result[4]
+					dictionary['F2SGLA'] = sql_result[5]
+					dictionary['F2AD'] = sql_result[6]
+					dictionary['F2ADTB'] = sql_result[7]
+					dictionary['F2ADHG'] = sql_result[8]
+					dictionary['F2ADTM'] = sql_result[9]
+					dictionary['F2ADTS'] = sql_result[10]
+					dictionary['F2SM'] = sql_result[11]
+			except Exception as e:
+				print(f'Error(DB.get_rows_for_schema): {str(e)}')
+				print("Cannot get GroundStatistics information due to above error(F2).")
+
+			# the dictionary is filled up, let's add it into the list
+			match_list.append(dictionary)
+			# print(dictionary)
+			# print()
+		return match_list
+
 
 if __name__ == "__main__":
+
+	db = UFCHistoryDB('ufc_history_01.db')
+	db.get_rows_for_schema()
 
 	print("Please run the main script!")
