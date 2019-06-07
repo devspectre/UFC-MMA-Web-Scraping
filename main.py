@@ -374,7 +374,10 @@ def fetch_information(start_id, url_list, key):
 	param key: first character of fighters' names
 	"""
 
-	print(key, start_id, url_list[0])
+	# print(f'Key=\'{key}\', SID={start_id}, URL={url_list[0]}, COUNT={len(url_list)}')
+	# print()
+
+	# return
 
 	id_ = start_id
 
@@ -559,51 +562,119 @@ def read_db_and_write_to_excel():
 
 
 # global variable for queue
-q = Queue()
+# q = Queue()
 
-def write_to_db():
-	""" writes queued data into database
-	return: 
+# def write_to_db():
+# 	""" writes queued data into database
+# 	return: 
+# 	"""
+
+# 	# instance to manage sqlite3 database
+# 	db = database.UFCHistoryDB('ufc_history.db', True)
+
+# 	counter = 0
+
+# 	while True:
+# 		entry = q.get()
+# 		if entry is None:
+# 			break
+# 		db.insert_into_table_fighters(entry[0], entry[1])
+# 		db.insert_into_table_history(entry[0], entry[2])
+# 		db.insert_into_table_standing_stats(entry[0], entry[3])
+# 		db.insert_into_table_clinch_stats(entry[0], entry[4])
+# 		db.insert_into_table_ground_stats(entry[0], entry[5])
+# 		print(f'{counter} rows written')
+# 		q.task_done()
+# 		counter += 1
+# 		if counter >= total_fighter_count:
+# 			break
+
+# 	db.close_connection()
+# 	read_db_and_write_to_excel()
+# 	print('Done!')
+
+# Signal handler
+# This will prevent to show complicated text of exceptions on keyboard interrupt
+def signal_handler(sig, frame):
+	""" handles signals
+	param sig: signal identifier
+	param frame:
+	return:
 	"""
 
-	# instance to manage sqlite3 database
-	db = database.UFCHistoryDB('ufc_history.db', True)
-
-	counter = 0
-
-	while True:
-		entry = q.get()
-		if entry is None:
-			break
-		db.insert_into_table_fighters(entry[0], entry[1])
-		db.insert_into_table_history(entry[0], entry[2])
-		db.insert_into_table_standing_stats(entry[0], entry[3])
-		db.insert_into_table_clinch_stats(entry[0], entry[4])
-		db.insert_into_table_ground_stats(entry[0], entry[5])
-		print(f'{counter} rows written')
-		q.task_done()
-		counter += 1
-		if counter >= total_fighter_count:
-			break
-
-	db.close_connection()
-	read_db_and_write_to_excel()
-	print('Done!')
+	print(f'SIGNAL {sig} CAUGHT.')
+	print('End the process according to request.')
+	exit(0)
 
 if __name__ == "__main__":
 
-	all_list = {}
+	signal.signal(signal.SIGINT, signal_handler)
+
+	fighter_urls = {}
 	search_keys = list(string.ascii_lowercase)
 
 	print("Fetching urls of fighters...")
 
 	count_list = []
 
-	for key in search_keys:
-		url_list = get_fighter_url_list_startwith(key)
-		all_list[key] = url_list
-		count_list.append(len(url_list))
-		total_fighter_count += len(url_list)
+	# global variable for total count of fighters
+	global total_fighter_count
+	total_fighter_count = 0
+
+	global total_thread_count
+	total_thread_count = 0
+
+	""" defines how to split list into threads
+	value 'alphabet': all urls of fighters whose name starts with a unique alphabet goes into a single thread
+	value 'specify_count_per_thread': every thread contains only specified number of urls
+
+	NOTE: 	Confirm that 'specify_count_per_thread' mode does not cause DOS(Denial of service)
+			Current site has got 23821 fighters.
+			Making a lot of concurrent requests to the site might cause DOS
+			I am sure that it won't happen in this case -  23821 requests in total.
+			But also, network bandwith is another issue though
+	"""
+	thread_distribution_mode = 'alphabet'
+
+	count_per_thread = 100
+
+	all_url_list = []
+
+	if thread_distribution_mode == 'alphabet':
+
+		try:
+			for key in search_keys:
+				url_list = get_fighter_url_list_startwith(key)
+				fighter_urls[key] = url_list
+				count_list.append(len(url_list))
+				total_fighter_count += len(url_list)
+				total_thread_count = len(fighter_urls)
+		except Exception as e:
+			print(f'Failed to fetch urls due to error: {str(e)}')
+			exit()
+
+	elif thread_distribution_mode == 'specify_count_per_thread':
+		try:
+			for key in search_keys:
+				url_list = get_fighter_url_list_startwith(key)
+				all_url_list.append(url_list)
+				total_fighter_count += len(url_list)
+
+			tmp_list = [all_url_list[x:x + count_per_thread] for x in range(0, len(all_url_list), count_per_thread)]
+
+			all_url_list.clear()
+
+			all_url_list = tmp_list
+
+			total_thread_count = len(all_url_list)
+
+		except Exception as e:
+			print(f'Failed to fetch urls due to error: {str(e)}')
+			exit()
+	else:
+		print('Unknown thread_distribution_mode.')
+		exit()
+
 
 	print(f'Fetched {total_fighter_count} urls in total!')
 
