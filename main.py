@@ -385,13 +385,14 @@ def fetch_information(start_id, url_list, key):
 		widgets=[key, progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(url_list))])
 	bar.start()
 
+	tmp_list = []
+
 	for furl in url_list:
 		try:
 			source = requests.get(get_page_url(furl, 'history')).text
 		except Exception as e:
 			print(f'Error(Main.request.get.history): {str(e)}')
 			id_ += 1
-			total_fighter_count -= 1
 			continue
 		
 		# get soup object
@@ -414,7 +415,6 @@ def fetch_information(start_id, url_list, key):
 		except Exception as e:
 			print(f'Error(Main.request.get.stats): {str(e)}')
 			id_ += 1
-			total_fighter_count -= 1
 			continue
 		
 		# get soup object
@@ -425,8 +425,7 @@ def fetch_information(start_id, url_list, key):
 		# db.insert_into_table_clinch_stats(id_, cs)
 		# db.insert_into_table_ground_stats(id_, gs)
 
-		queue_entry = [id_, ginfo, hinfo, ss, cs, gs]
-		q.put(queue_entry)
+		tmp_list.append([id_, ginfo, hinfo, ss, cs, gs])
 
 		bar.update(id_ - start_id + 1)
 
@@ -434,6 +433,21 @@ def fetch_information(start_id, url_list, key):
 
 	if id_ - start_id >= len(url_list):
 		bar.finish()
+
+	info_list.append(tmp_list)
+
+	if len(info_list) >= total_thread_count:
+
+		db = database.UFCHistoryDB('ufc_history.db', True)
+
+		for info in info_list:
+			db.insert_into_table_fighters(info[0], info[1])
+			db.insert_into_table_history(info[0], info[2])
+			db.insert_into_table_standing_stats(info[0], info[3])
+			db.insert_into_table_clinch_stats(info[0], info[4])
+			db.insert_into_table_ground_stats(info[0], info[5])
+
+		db.close_connection()
 
 def read_db_and_write_to_excel():
 	""" 
@@ -688,15 +702,28 @@ if __name__ == "__main__":
 
 	print("Scraping information...")
 
-	db_thread = threading.Thread(target=write_to_db)
-	db_thread.start()
+	# list that contains all information fetched
+	global info_list
+	info_list = []
 
-	for key in search_keys:
+	# db_thread = threading.Thread(target=write_to_db)
+	# db_thread.start()
 
-		thread_ = threading.Thread(target=fetch_information, args=(sum(count_list[:key_index + 1]) + 1, all_list[key], key))
+	if thread_distribution_mode == 'alphabet':
 
-		key_index += 1
+		for key in search_keys:
 
-		thread_.start()
+			thread_ = threading.Thread(target=fetch_information, args=(sum(count_list[:key_index]) + 1, fighter_urls[key], key))
+
+			key_index += 1
+
+			thread_.start()
+	elif thread_distribution_mode == 'specify_count_per_thread':
+
+		for index, list_ in enumerate(all_url_list):
+
+			thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, index + 1))
+
+			thread_.start()
 		
 	
