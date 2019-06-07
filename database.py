@@ -6,17 +6,32 @@ class UFCHistoryDB:
 	""" manages sqlite database
 	"""
 
-	def __init__(self, db_file, delete_if_exists = False):
-		""" constructor """
+	def __init__(self, db_file, delete_if_exists = False, sub_folder = None):
+		""" constructor 
+		param db_file: database file name
+		param delete_if_exists: True: delete 'db_file' if it already exists, False: do nothing
+		param sub_folder: create a subdirectory 'sub_folder' and create database file in it
+		return:
+		"""
 
-		self.db_file_ = db_file
+		self.path_ = ''
+
+		if sub_folder != None:
+			if not os.path.exists(sub_folder):
+				os.makedirs(sub_folder)
+			dir_path = os.path.dirname(os.path.realpath(__file__))
+			self.db_file_ = f'{dir_path}\\{sub_folder}\\{db_file}'
+			self.full_path = f'{dir_path}\\{sub_folder}'
+		else:
+			self.db_file_ = db_file
+			self.full_path = os.path.dirname(os.path.realpath(__file__))
 
 		# is_db_file_deleted = self.delete_database()
-		if delete_if_exists and os.path.isfile(db_file):
-			if is_db_file_deleted == False:
+		if delete_if_exists and os.path.isfile(self.db_file_):
+			if self.delete_database() == False:
 				exit()
-		
-		self.conn = self.create_connection(db_file)
+
+		self.conn = self.create_connection(self.db_file_)
 
 		if self.conn == None:
 			print("Cannot create connection! ")
@@ -36,8 +51,8 @@ class UFCHistoryDB:
 		try:
 			conn = sqlite3.connect(db_file)
 			return conn
-		except Error as e:
-			print(e)
+		except Exception as e:
+			print(str(e))
 	 
 		return None
 
@@ -145,7 +160,7 @@ class UFCHistoryDB:
 					)""")
 
 		self.conn.commit()
-		self.reconnect_database(self.db_file_)
+		self.reconnect_database()
 
 	def delete_database(self):
 		""" delete database db_name
@@ -161,7 +176,7 @@ class UFCHistoryDB:
 			return False
 		
 
-	def reconnect_database(self, db_file):
+	def reconnect_database(self):
 		""" close the connection to database db_name and reconnect to db_name
 		:param db_file: database file
 		:return:
@@ -172,7 +187,7 @@ class UFCHistoryDB:
 
 		# reconnect to database
 		try:
-			self.conn = sqlite3.connect(db_file)
+			self.conn = sqlite3.connect(self.db_file_)
 		except Exception as e:
 			raise e
 
@@ -568,7 +583,7 @@ class UFCHistoryDB:
 
 if __name__ == "__main__":
 
-	db = UFCHistoryDB('ufc_history_01.db')
+	db = UFCHistoryDB('ufc_history_01.db', True, 'tmp_data')
 	db.get_rows_for_schema()
 
 	print("Please run the main script!")
