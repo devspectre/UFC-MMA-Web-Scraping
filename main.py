@@ -2,6 +2,7 @@ import requests
 import string
 from queue import Queue
 import threading
+import signal
 import progressbar
 from bs4 import BeautifulSoup
 from datetime import datetime as DT
