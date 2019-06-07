@@ -188,3 +188,4 @@ if __name__ == '__main__':
 	xw.set_header_list(header_list)
 	xw.done()
 	print('Created a temporary excel file with header only.')
+	print('Run the main script to scrap data.')
