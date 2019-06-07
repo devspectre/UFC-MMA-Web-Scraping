@@ -10,11 +10,8 @@ from datetime import datetime as DT
 import database
 from excel import ExcelWriter
 
-# global variable for total count of fighters
-total_fighter_count = 0
-
-# global variable for progressbar
-bar = None
+# # global variable for progressbar
+# bar = None
 
 def list_to_string(list_, delimiter):
 	""" returns a string from given list joined with given delimiter
