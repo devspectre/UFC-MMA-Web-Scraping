@@ -367,88 +367,6 @@ def get_statistics(soup):
 
 	return standing_list, clinch_list, ground_list
 
-def fetch_information(start_id, url_list, key):
-	""" iterate over url_list, send get request per each url, scrap data and write data into database
-	param start_id: starting point of unique id of fighter on url_list
-	param url_list: list of fighter urls 
-	param key: first character of fighters' names
-	"""
-
-	# print(f'Key=\'{key}\', SID={start_id}, URL={url_list[0]}, COUNT={len(url_list)}')
-	# print()
-
-	# return
-
-	id_ = start_id
-
-	bar = progressbar.ProgressBar(maxval=len(url_list), \
-		widgets=[key, progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(url_list))])
-	bar.start()
-
-	tmp_list = []
-
-	for furl in url_list:
-		try:
-			source = requests.get(get_page_url(furl, 'history')).text
-		except Exception as e:
-			print(f'Error(Main.request.get.history): {str(e)}')
-			id_ += 1
-			continue
-		
-		# get soup object
-		soup = BeautifulSoup(source, 'lxml')
-		# print(furl)
-		ginfo = get_general_info(soup)
-
-		if len(ginfo) == 0:
-			print(furl)
-			print('Cannot get general information from this url')
-
-		ginfo['url'] = furl
-		# db.insert_into_table_fighters(id_, ginfo)
-
-		hinfo = get_history_info(soup)
-		# db.insert_into_table_history(id_, hinfo)
-
-		try:
-			source = requests.get(get_page_url(furl, 'stats')).text
-		except Exception as e:
-			print(f'Error(Main.request.get.stats): {str(e)}')
-			id_ += 1
-			continue
-		
-		# get soup object
-		soup = BeautifulSoup(source, 'lxml')
-
-		ss, cs, gs = get_statistics(soup)
-		# db.insert_into_table_standing_stats(id_, ss)
-		# db.insert_into_table_clinch_stats(id_, cs)
-		# db.insert_into_table_ground_stats(id_, gs)
-
-		tmp_list.append([id_, ginfo, hinfo, ss, cs, gs])
-
-		bar.update(id_ - start_id + 1)
-
-		id_ += 1
-
-	if id_ - start_id >= len(url_list):
-		bar.finish()
-
-	info_list.append(tmp_list)
-
-	if len(info_list) >= total_thread_count:
-
-		db = database.UFCHistoryDB('ufc_history.db', True)
-
-		for info in info_list:
-			db.insert_into_table_fighters(info[0], info[1])
-			db.insert_into_table_history(info[0], info[2])
-			db.insert_into_table_standing_stats(info[0], info[3])
-			db.insert_into_table_clinch_stats(info[0], info[4])
-			db.insert_into_table_ground_stats(info[0], info[5])
-
-		db.close_connection()
-
 def read_db_and_write_to_excel():
 	""" 
 	"""
@@ -466,10 +384,16 @@ def read_db_and_write_to_excel():
 	xw = ExcelWriter('ufc_history')
 	
 	# create horizontal header
-	xw.set_header_list(header_list)
+	xw.set_header_list(xw.header_list)
 
 	# initialize variables row_index, our default template starts from row 4
 	row_index = 4
+
+	xw_bar = progressbar.ProgressBar(maxval=len(rows), \
+									widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
+	xw_bar.start()
+
+	print('Writing to excel...')
 
 	# write to excel file
 	# NOTE: Using dictionary rather than list makes it easier to change/revise and maintain
@@ -483,129 +407,213 @@ def read_db_and_write_to_excel():
 		xw.write_to_sheet(row_index, 5, row['Time'])
 		xw.write_to_sheet(row_index, 6, row['IsTitle?'])
 
-		xw.write_to_sheet(row_index, 7, row['F1Name'])
-		xw.write_to_sheet(row_index, 8, row['F1Height'])
-		xw.write_to_sheet(row_index, 9, row['F1Reach'])
-		xw.write_to_sheet(row_index, 10, row['F1Age'])
+		if 'F1Name' in row:
+			xw.write_to_sheet(row_index, 7, row['F1Name'])
+			xw.write_to_sheet(row_index, 8, row['F1Height'])
+			xw.write_to_sheet(row_index, 9, row['F1Reach'])
+			xw.write_to_sheet(row_index, 10, row['F1Age'])
 
-		xw.write_to_sheet(row_index, 11, row['F1SDBL'])
-		xw.write_to_sheet(row_index, 12, row['F1SDBA'])
-		xw.write_to_sheet(row_index, 13, row['F1SDHL'])
-		xw.write_to_sheet(row_index, 14, row['F1SDHA'])
-		xw.write_to_sheet(row_index, 15, row['F1SDLL'])
-		xw.write_to_sheet(row_index, 16, row['F1SDLA'])
-		xw.write_to_sheet(row_index, 17, row['F1TSL'])
-		xw.write_to_sheet(row_index, 18, row['F1TSA'])
-		xw.write_to_sheet(row_index, 19, row['F1SSL'])
-		xw.write_to_sheet(row_index, 20, row['F1SSA'])
-		xw.write_to_sheet(row_index, 21, row['F1SA'])
-		xw.write_to_sheet(row_index, 22, row['F1KD'])
+		if 'F1SDBL' in row:
+			xw.write_to_sheet(row_index, 11, row['F1SDBL'])
+			xw.write_to_sheet(row_index, 12, row['F1SDBA'])
+			xw.write_to_sheet(row_index, 13, row['F1SDHL'])
+			xw.write_to_sheet(row_index, 14, row['F1SDHA'])
+			xw.write_to_sheet(row_index, 15, row['F1SDLL'])
+			xw.write_to_sheet(row_index, 16, row['F1SDLA'])
+			xw.write_to_sheet(row_index, 17, row['F1TSL'])
+			xw.write_to_sheet(row_index, 18, row['F1TSA'])
+			xw.write_to_sheet(row_index, 19, row['F1SSL'])
+			xw.write_to_sheet(row_index, 20, row['F1SSA'])
+			xw.write_to_sheet(row_index, 21, row['F1SA'])
+			xw.write_to_sheet(row_index, 22, row['F1KD'])
 
-		xw.write_to_sheet(row_index, 23, row['F1SCBL'])
-		xw.write_to_sheet(row_index, 24, row['F1SCBA'])
-		xw.write_to_sheet(row_index, 25, row['F1SCHL'])
-		xw.write_to_sheet(row_index, 26, row['F1SCHA'])
-		xw.write_to_sheet(row_index, 27, row['F1SCLL'])
-		xw.write_to_sheet(row_index, 28, row['F1SCLA'])
-		xw.write_to_sheet(row_index, 29, row['F1RV'])
-		xw.write_to_sheet(row_index, 30, row['F1SR'])
-		xw.write_to_sheet(row_index, 31, row['F1TDL'])
-		xw.write_to_sheet(row_index, 32, row['F1TDA'])
-		xw.write_to_sheet(row_index, 33, row['F1TDS'])
+		if 'F1SCBL' in row:
+			xw.write_to_sheet(row_index, 23, row['F1SCBL'])
+			xw.write_to_sheet(row_index, 24, row['F1SCBA'])
+			xw.write_to_sheet(row_index, 25, row['F1SCHL'])
+			xw.write_to_sheet(row_index, 26, row['F1SCHA'])
+			xw.write_to_sheet(row_index, 27, row['F1SCLL'])
+			xw.write_to_sheet(row_index, 28, row['F1SCLA'])
+			xw.write_to_sheet(row_index, 29, row['F1RV'])
+			xw.write_to_sheet(row_index, 30, row['F1SR'])
+			xw.write_to_sheet(row_index, 31, row['F1TDL'])
+			xw.write_to_sheet(row_index, 32, row['F1TDA'])
+			xw.write_to_sheet(row_index, 33, row['F1TDS'])
 
-		xw.write_to_sheet(row_index, 34, row['F1SGBL'])
-		xw.write_to_sheet(row_index, 35, row['F1SGBA'])
-		xw.write_to_sheet(row_index, 36, row['F1SGHL'])
-		xw.write_to_sheet(row_index, 37, row['F1SGHA'])
-		xw.write_to_sheet(row_index, 38, row['F1SGLL'])
-		xw.write_to_sheet(row_index, 39, row['F1SGLA'])
-		xw.write_to_sheet(row_index, 40, row['F1AD'])
-		xw.write_to_sheet(row_index, 41, row['F1ADTB'])
-		xw.write_to_sheet(row_index, 42, row['F1ADHG'])
-		xw.write_to_sheet(row_index, 43, row['F1ADTM'])
-		xw.write_to_sheet(row_index, 44, row['F1ADTS'])
-		xw.write_to_sheet(row_index, 45, row['F1SM'])
+		if 'F1SGBL' in row:
+			xw.write_to_sheet(row_index, 34, row['F1SGBL'])
+			xw.write_to_sheet(row_index, 35, row['F1SGBA'])
+			xw.write_to_sheet(row_index, 36, row['F1SGHL'])
+			xw.write_to_sheet(row_index, 37, row['F1SGHA'])
+			xw.write_to_sheet(row_index, 38, row['F1SGLL'])
+			xw.write_to_sheet(row_index, 39, row['F1SGLA'])
+			xw.write_to_sheet(row_index, 40, row['F1AD'])
+			xw.write_to_sheet(row_index, 41, row['F1ADTB'])
+			xw.write_to_sheet(row_index, 42, row['F1ADHG'])
+			xw.write_to_sheet(row_index, 43, row['F1ADTM'])
+			xw.write_to_sheet(row_index, 44, row['F1ADTS'])
+			xw.write_to_sheet(row_index, 45, row['F1SM'])
 
-		xw.write_to_sheet(row_index, 7, row['F2Name'])
-		xw.write_to_sheet(row_index, 8, row['F2Height'])
-		xw.write_to_sheet(row_index, 9, row['F2Reach'])
-		xw.write_to_sheet(row_index, 10, row['F2Age'])
+		if 'F2Name' in row:
+			xw.write_to_sheet(row_index, 7, row['F2Name'])
+			xw.write_to_sheet(row_index, 8, row['F2Height'])
+			xw.write_to_sheet(row_index, 9, row['F2Reach'])
+			xw.write_to_sheet(row_index, 10, row['F2Age'])
 
-		xw.write_to_sheet(row_index, 11, row['F2SDBL'])
-		xw.write_to_sheet(row_index, 12, row['F2SDBA'])
-		xw.write_to_sheet(row_index, 13, row['F2SDHL'])
-		xw.write_to_sheet(row_index, 14, row['F2SDHA'])
-		xw.write_to_sheet(row_index, 15, row['F2SDLL'])
-		xw.write_to_sheet(row_index, 16, row['F2SDLA'])
-		xw.write_to_sheet(row_index, 17, row['F2TSL'])
-		xw.write_to_sheet(row_index, 18, row['F2TSA'])
-		xw.write_to_sheet(row_index, 19, row['F2SSL'])
-		xw.write_to_sheet(row_index, 20, row['F2SSA'])
-		xw.write_to_sheet(row_index, 21, row['F2SA'])
-		xw.write_to_sheet(row_index, 22, row['F2KD'])
+		if 'F2SDBL' in row:
+			xw.write_to_sheet(row_index, 11, row['F2SDBL'])
+			xw.write_to_sheet(row_index, 12, row['F2SDBA'])
+			xw.write_to_sheet(row_index, 13, row['F2SDHL'])
+			xw.write_to_sheet(row_index, 14, row['F2SDHA'])
+			xw.write_to_sheet(row_index, 15, row['F2SDLL'])
+			xw.write_to_sheet(row_index, 16, row['F2SDLA'])
+			xw.write_to_sheet(row_index, 17, row['F2TSL'])
+			xw.write_to_sheet(row_index, 18, row['F2TSA'])
+			xw.write_to_sheet(row_index, 19, row['F2SSL'])
+			xw.write_to_sheet(row_index, 20, row['F2SSA'])
+			xw.write_to_sheet(row_index, 21, row['F2SA'])
+			xw.write_to_sheet(row_index, 22, row['F2KD'])
 
-		xw.write_to_sheet(row_index, 23, row['F2SCBL'])
-		xw.write_to_sheet(row_index, 24, row['F2SCBA'])
-		xw.write_to_sheet(row_index, 25, row['F2SCHL'])
-		xw.write_to_sheet(row_index, 26, row['F2SCHA'])
-		xw.write_to_sheet(row_index, 27, row['F2SCLL'])
-		xw.write_to_sheet(row_index, 28, row['F2SCLA'])
-		xw.write_to_sheet(row_index, 29, row['F2RV'])
-		xw.write_to_sheet(row_index, 30, row['F2SR'])
-		xw.write_to_sheet(row_index, 31, row['F2TDL'])
-		xw.write_to_sheet(row_index, 32, row['F2TDA'])
-		xw.write_to_sheet(row_index, 33, row['F2TDS'])
+		if 'F2SCBL' in row:
+			xw.write_to_sheet(row_index, 23, row['F2SCBL'])
+			xw.write_to_sheet(row_index, 24, row['F2SCBA'])
+			xw.write_to_sheet(row_index, 25, row['F2SCHL'])
+			xw.write_to_sheet(row_index, 26, row['F2SCHA'])
+			xw.write_to_sheet(row_index, 27, row['F2SCLL'])
+			xw.write_to_sheet(row_index, 28, row['F2SCLA'])
+			xw.write_to_sheet(row_index, 29, row['F2RV'])
+			xw.write_to_sheet(row_index, 30, row['F2SR'])
+			xw.write_to_sheet(row_index, 31, row['F2TDL'])
+			xw.write_to_sheet(row_index, 32, row['F2TDA'])
+			xw.write_to_sheet(row_index, 33, row['F2TDS'])
 
-		xw.write_to_sheet(row_index, 34, row['F2SGBL'])
-		xw.write_to_sheet(row_index, 35, row['F2SGBA'])
-		xw.write_to_sheet(row_index, 36, row['F2SGHL'])
-		xw.write_to_sheet(row_index, 37, row['F2SGHA'])
-		xw.write_to_sheet(row_index, 38, row['F2SGLL'])
-		xw.write_to_sheet(row_index, 39, row['F2SGLA'])
-		xw.write_to_sheet(row_index, 40, row['F2AD'])
-		xw.write_to_sheet(row_index, 41, row['F2ADTB'])
-		xw.write_to_sheet(row_index, 42, row['F2ADHG'])
-		xw.write_to_sheet(row_index, 43, row['F2ADTM'])
-		xw.write_to_sheet(row_index, 44, row['F2ADTS'])
-		xw.write_to_sheet(row_index, 45, row['F2SM'])
+		if 'F2SGBL' in row:
+			xw.write_to_sheet(row_index, 34, row['F2SGBL'])
+			xw.write_to_sheet(row_index, 35, row['F2SGBA'])
+			xw.write_to_sheet(row_index, 36, row['F2SGHL'])
+			xw.write_to_sheet(row_index, 37, row['F2SGHA'])
+			xw.write_to_sheet(row_index, 38, row['F2SGLL'])
+			xw.write_to_sheet(row_index, 39, row['F2SGLA'])
+			xw.write_to_sheet(row_index, 40, row['F2AD'])
+			xw.write_to_sheet(row_index, 41, row['F2ADTB'])
+			xw.write_to_sheet(row_index, 42, row['F2ADHG'])
+			xw.write_to_sheet(row_index, 43, row['F2ADTM'])
+			xw.write_to_sheet(row_index, 44, row['F2ADTS'])
+			xw.write_to_sheet(row_index, 45, row['F2SM'])
 
 		row_index += 1
+
+		xw_bar.update(row_index - 4)
 
 	# save the file and close safely
 	xw.done()
 
+	xw_bar.finish()
 
-# global variable for queue
-# q = Queue()
+def fetch_information(start_id, url_list, key):
+	""" iterate over url_list, send get request per each url, scrap data and write data into database
+	param start_id: starting point of unique id of fighter on url_list
+	param url_list: list of fighter urls 
+	param key: first character of fighters' names
+	"""
 
-# def write_to_db():
-# 	""" writes queued data into database
-# 	return: 
-# 	"""
+	# print(f'Key=\'{key}\', SID={start_id}, URL={url_list[0]}, COUNT={len(url_list)}')
+	# print()
 
-# 	# instance to manage sqlite3 database
-# 	db = database.UFCHistoryDB('ufc_history.db', True)
+	# return
 
-# 	counter = 0
+	global fetched_fighter_count
+	global bar
 
-# 	while True:
-# 		entry = q.get()
-# 		if entry is None:
-# 			break
-# 		db.insert_into_table_fighters(entry[0], entry[1])
-# 		db.insert_into_table_history(entry[0], entry[2])
-# 		db.insert_into_table_standing_stats(entry[0], entry[3])
-# 		db.insert_into_table_clinch_stats(entry[0], entry[4])
-# 		db.insert_into_table_ground_stats(entry[0], entry[5])
-# 		print(f'{counter} rows written')
-# 		q.task_done()
-# 		counter += 1
-# 		if counter >= total_fighter_count:
-# 			break
+	id_ = start_id
 
-# 	db.close_connection()
-# 	read_db_and_write_to_excel()
-# 	print('Done!')
+	tmp_list = []
+
+	for furl in url_list:
+		try:
+			source = requests.get(get_page_url(furl, 'history')).text
+		except Exception as e:
+			print(f'Error(Main.request.get.history): {str(e)}')
+			id_ += 1
+			continue
+		
+		# get soup object
+		soup = BeautifulSoup(source, 'lxml')
+		# print(furl)
+
+		ginfo = {}
+		ginfo = get_general_info(soup)
+
+		if len(ginfo) == 0:
+			print(furl)
+			print('Cannot get general information from this url')
+		
+		ginfo['url'] = furl
+
+		hinfo = get_history_info(soup)
+
+		try:
+			source = requests.get(get_page_url(furl, 'stats')).text
+		except Exception as e:
+			print(f'Error(Main.request.get.stats): {str(e)}')
+			id_ += 1
+			continue
+		
+		# get soup object
+		soup = BeautifulSoup(source, 'lxml')
+
+		ss, cs, gs = get_statistics(soup)
+		# hinfo, ss, cs, gs = None, None, None, None
+
+		tmp_list.append((id_, ginfo, hinfo, ss, cs, gs))
+
+		fetched_fighter_count += 1
+
+		bar.update(fetched_fighter_count)
+
+		id_ += 1
+
+	# if id_ - start_id >= len(url_list):
+	# 	bar.finish()
+
+	info_list.append(tmp_list)
+
+	if len(info_list) >= total_thread_count:
+
+		bar.finish()
+
+		print('Writing fetched data into database...')
+
+		db = database.UFCHistoryDB('ufc_history.db', True)
+
+		db_bar = progressbar.ProgressBar(maxval=total_fighter_count, \
+		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(total_fighter_count)])
+		db_bar.start()
+
+		counter = 0
+
+		db.execute('BEGIN TRANSACTION')
+
+		for info in info_list:
+			for item in info:
+				db.insert_into_table_fighters(item[0], item[1])
+				db.insert_into_table_history(item[0], item[2])
+				db.insert_into_table_standing_stats(item[0], item[3])
+				db.insert_into_table_clinch_stats(item[0], item[4])
+				db.insert_into_table_ground_stats(item[0], item[5])
+
+			counter += 1
+			db_bar.update(counter)
+
+		db_bar.finish()
+
+		db.execute('COMMIT')
+
+		db.close_connection()
+
+		read_db_and_write_to_excel()
+
+		print('Done!')
 
 # Signal handler
 # This will prevent to show complicated text of exceptions on keyboard interrupt
@@ -635,6 +643,9 @@ if __name__ == "__main__":
 	global total_fighter_count
 	total_fighter_count = 0
 
+	global fetched_fighter_count
+	fetched_fighter_count = 0
+
 	global total_thread_count
 	total_thread_count = 0
 
@@ -643,36 +654,46 @@ if __name__ == "__main__":
 	value 'specify_count_per_thread': every thread contains only specified number of urls
 
 	NOTE: 	Confirm that 'specify_count_per_thread' mode does not cause DOS(Denial of service)
-			Current site has got 23821 fighters.
+			Current site has got 23821 fighters' information.
 			Making a lot of concurrent requests to the site might cause DOS
 			I am sure that it won't happen in this case -  23821 requests in total.
 			But also, network bandwith is another issue though
 	"""
-	thread_distribution_mode = 'alphabet'
+	thread_distribution_mode = 'specify_count_per_thread'
 
-	count_per_thread = 100
+	count_per_thread = 50
 
 	all_url_list = []
+
+	url_bar = progressbar.ProgressBar(maxval=len(search_keys), \
+		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(search_keys))])
+	url_bar.start()
 
 	if thread_distribution_mode == 'alphabet':
 
 		try:
-			for key in search_keys:
+			for index, key in enumerate(search_keys):
 				url_list = get_fighter_url_list_startwith(key)
 				fighter_urls[key] = url_list
 				count_list.append(len(url_list))
 				total_fighter_count += len(url_list)
 				total_thread_count = len(fighter_urls)
+				url_bar.update(index + 1)
 		except Exception as e:
 			print(f'Failed to fetch urls due to error: {str(e)}')
 			exit()
 
 	elif thread_distribution_mode == 'specify_count_per_thread':
 		try:
-			for key in search_keys:
+			for index, key in enumerate(search_keys):
+				# debug code
+				# if index > 1:
+				# 	continue
+
 				url_list = get_fighter_url_list_startwith(key)
-				all_url_list.append(url_list)
+				all_url_list += url_list
 				total_fighter_count += len(url_list)
+				url_bar.update(index + 1)
 
 			tmp_list = [all_url_list[x:x + count_per_thread] for x in range(0, len(all_url_list), count_per_thread)]
 
@@ -684,10 +705,14 @@ if __name__ == "__main__":
 
 		except Exception as e:
 			print(f'Failed to fetch urls due to error: {str(e)}')
+			url_bar.finish()
 			exit()
 	else:
 		print('Unknown thread_distribution_mode.')
+		url_bar.finish()
 		exit()
+
+	url_bar.finish()
 
 
 	print(f'Fetched {total_fighter_count} urls in total!')
@@ -709,6 +734,12 @@ if __name__ == "__main__":
 	# db_thread = threading.Thread(target=write_to_db)
 	# db_thread.start()
 
+	global bar
+
+	bar = progressbar.ProgressBar(maxval=total_fighter_count, \
+		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(total_fighter_count)])
+	bar.start()
+
 	if thread_distribution_mode == 'alphabet':
 
 		for key in search_keys:
@@ -722,7 +753,7 @@ if __name__ == "__main__":
 
 		for index, list_ in enumerate(all_url_list):
 
-			thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, index + 1))
+			thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, str(index + 1)))
 
 			thread_.start()
 		
