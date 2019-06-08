@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import sys
+import progressbar
 
 class UFCHistoryDB:
 	""" manages sqlite database
@@ -193,6 +194,13 @@ class UFCHistoryDB:
 
 		self.c = self.conn.cursor()
 
+	def execute(self, query):
+		""" execute query
+		param query: query
+		"""
+
+		self.c.execute(query)
+
 	def insert_into_table_fighters(self, id_, data):
 		""" insert given 'data' into table 'Fighters'
 
@@ -200,6 +208,10 @@ class UFCHistoryDB:
 		:param data: dictionary of fighter general information
 		:return:
 		"""
+
+		if data is None:
+			print('Fighter data is None!')
+			return
 
 		sql = """INSERT INTO Fighters (id, name, age, url, height, weight, weight_class, reach, group_name) 
 						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
@@ -209,15 +221,15 @@ class UFCHistoryDB:
 			val = (id_, data['name'], data['age'], data['url'], data['height'], data['weight']
 				, data['weight_class'], data['reach'], data['group_name'])
 		except Exception as e:
-			# print("Error(DB.Fighters): ", e)
-			pass
+			print("Error(DB.Fighters): ", str(e))
+			# pass
 
 		if val != None:
 			try:
 				self.c.execute(sql, val)
-				self.conn.commit()
+				# self.conn.commit()
 			except Exception as e:
-				print("Error while inserting into table 'Fighters':", e)
+				print("Error while inserting into table 'Fighters':", str(e))
 				print("Query : ", sql, val)
 		
 	def insert_into_table_history(self, id_, data):
@@ -226,6 +238,9 @@ class UFCHistoryDB:
 		:param data: list of sub lists
 		:return:
 		"""
+
+		if data is None:
+			return
 
 		for item in data:
 			sql = """INSERT INTO History (id, match_date, event, opponent, opp_url, result, decision, rnd, match_time) 
@@ -240,14 +255,14 @@ class UFCHistoryDB:
 					val = (id_, item['DATE'], item['EVENT'], item['OPPONENT'], None, item['RESULT']
 						, item['DECISION'], item['RND'], item['TIME'])
 			except Exception as e:
-				print("Error(DB.History): ", e)
+				print("Error(DB.History): ", str(e))
 
 			if val != None:
 				try:
 					self.c.execute(sql, val)
-					self.conn.commit()
+					# self.conn.commit()
 				except Exception as e:
-					print("Error while inserting into table 'History':", e)
+					print("Error while inserting into table 'History':", str(e))
 					print("Query : ", sql, val)
 
 	def insert_into_table_standing_stats(self, id_, data):
@@ -256,6 +271,9 @@ class UFCHistoryDB:
 		:param data: list of sub lists
 		:return:
 		"""
+
+		if data is None:
+			return
 
 		for item in data:
 			sql = """INSERT INTO StandingStatistics (id, match_date, opponent, opp_url, sdbl_a, sdhl_a, sdll_a, tsl, 
@@ -271,14 +289,14 @@ class UFCHistoryDB:
 					val = (id_, item['DATE'], item['OPP'], None, item['SDBL/A'], item['SDHL/A'], item['SDLL/A']
 						, item['TSL'], item['TSA'], item['SSL'], item['SA'], item['KD'], item['PERCENTBODY'], item['PERCENTHEAD'], item['PERCENTLEG'])
 			except Exception as e:
-				print("Error(DB.StandingStatistics): ", e)
+				print("Error(DB.StandingStatistics): ", str(e))
 
 			if val != None:
 				try:
 					self.c.execute(sql, val)
-					self.conn.commit()
+					# self.conn.commit()
 				except Exception as e:
-					print("Error while inserting into table 'StandingStatistics':", e)
+					print("Error while inserting into table 'StandingStatistics':", str(e))
 					print("Query : ", sql, val)
 
 	def insert_into_table_clinch_stats(self, id_, data):
@@ -287,6 +305,9 @@ class UFCHistoryDB:
 		:param data: list of sub lists
 		:return:
 		"""
+
+		if data is None:
+			return
 
 		for item in data:
 			sql = """INSERT INTO ClinchStatistics (id, match_date, opponent, opp_url, scbl, scba, schl, scha, scll, 
@@ -302,14 +323,14 @@ class UFCHistoryDB:
 					val = (id_, item['DATE'], item['OPP'], None, item['SCBL'], item['SCBA'], item['SCHL']
 						, item['SCHA'], item['SCLL'], item['SCLA'], item['RV'], item['SR'], item['TDL'], item['TDA'], item['TDS'], item['TDPERCENT'])
 			except Exception as e:
-				print("Error(DB.ClinchStatistics): ", e)
+				print("Error(DB.ClinchStatistics): ", str(e))
 
 			if val != None:
 				try:
 					self.c.execute(sql, val)
-					self.conn.commit()
+					# self.conn.commit()
 				except Exception as e:
-					print("Error while inserting into table 'ClinchStatistics':", e)
+					print("Error while inserting into table 'ClinchStatistics':", str(e))
 					print("Query : ", sql, val)
 
 	def insert_into_table_ground_stats(self, id_, data):
@@ -318,6 +339,9 @@ class UFCHistoryDB:
 		:param data: list of sub lists
 		:return:
 		"""
+
+		if data is None:
+			return
 
 		for item in data:
 			sql = """INSERT INTO GroundStatistics (id, match_date, opponent, opp_url, sgbl, sgba, sghl, sgha, sgll, 
@@ -333,14 +357,14 @@ class UFCHistoryDB:
 					val = (id_, item['DATE'], item['OPP'], None, item['SGBL'], item['SGBA'], item['SGHL']
 						, item['SGHA'], item['SGLL'], item['SGLA'], item['AD'], item['ADTB'], item['ADHG'], item['ADTM'], item['ADTS'], item['SM'])
 			except Exception as e:
-				print("Error(DB.GroundStatistics): ", e)
+				print("Error(DB.GroundStatistics): ", str(e))
 
 			if val != None:
 				try:
 					self.c.execute(sql, val)
-					self.conn.commit()
+					# self.conn.commit()
 				except Exception as e:
-					print("Error while inserting into table 'GroundStatistics':", e)
+					print("Error while inserting into table 'GroundStatistics':", str(e))
 					print("Query : ", sql, val)
 
 	def get_rows_for_schema(self):
@@ -361,7 +385,15 @@ class UFCHistoryDB:
 		# can easily understand what is what
 		match_list = []
 
-		for row in self.c.execute(sql).fetchall():
+		rows = self.c.execute(sql).fetchall()
+
+		get_rows_bar = progressbar.ProgressBar(maxval=len(rows), \
+									widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
+		get_rows_bar.start()
+
+		print('Getting rows for excel output from database...')
+
+		for index, row in enumerate(rows):
 			# print(row)
 			# dictionary to contain match information
 			dictionary = {}
@@ -472,8 +504,8 @@ class UFCHistoryDB:
 
 			# F2 Fighter Info
 			
-			sql = """SELECT Fighters.id, Fighters.name, Fighters.height, Fighters.reach, Fighters.age, Fighters.url 
-							FROM Fighters WHERE Fighters.name=? AND Fighters.url=?
+			sql = """SELECT id, name, height, reach, age
+							FROM Fighters WHERE name=? and url=?
 			"""
 
 			val = (row[12], row[14])
@@ -481,7 +513,7 @@ class UFCHistoryDB:
 
 			try:
 				sql_result = self.c.execute(sql, val).fetchone()
-				if sql_result is not None and len(sql_result) > 4:
+				if sql_result is not None and len(sql_result) > 0:
 					dictionary['F2Id'] = sql_result[0]
 					dictionary['F2Name'] = sql_result[1]
 					dictionary['F2Height'] = sql_result[2]
@@ -492,6 +524,8 @@ class UFCHistoryDB:
 				print("Cannot get fighter 2 information due to above error.")
 
 			if 'F2Id' not in dictionary: # skip over if identifier of fighter 2 is not avaiable
+				index += 1
+				get_rows_bar.update(index)
 				continue
 
 			# F2 Striking Stats
@@ -576,8 +610,14 @@ class UFCHistoryDB:
 
 			# the dictionary is filled up, let's add it into the list
 			match_list.append(dictionary)
+
+			index += 1
+			
+			get_rows_bar.update(index)
 			# print(dictionary)
 			# print()
+
+		get_rows_bar.finish()
 		return match_list
 
 
