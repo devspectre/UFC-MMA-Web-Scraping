@@ -1,107 +1,108 @@
 import xlsxwriter
 from xlsxwriter import Workbook
 import sqlite3
-
-# create a global variable of header list
-header_list = [
-	'Date',
-	'WeightClass',
-	'Winner',
-	'DecisionType',
-	'Rounds',
-	'Time',
-	'IsTitle?',
-	'F1Name',
-	'F1Height',
-	'F1Reach',
-	'F1Age',
-
-	'F1SDBL',
-	'F1SDBA',
-	'F1SDHL',
-	'F1SDHA',
-	'F1SDLL',
-	'F1SDLA',
-	'F1TSL',
-	'F1TSA',
-	'F1SSL',
-	'F1SSA',
-	'F1SA',
-	'F1KD',
-
-	'F1SCBL',
-	'F1SCBA',
-	'F1SCHL',
-	'F1SCHA',
-	'F1SCLl',
-	'F1SCLA',
-	'F1RV',
-	'F1SR',
-	'F1TDL',
-	'F1TDA',
-	'F1TDS',
-
-	'F1SGBL',
-	'F1SGBA',
-	'F1SGHL',
-	'F1SGHA',
-	'F1SGLL',
-	'F1SGLA',
-	'F1AD',
-	'F1ADTB',
-	'F1ADHG',
-	'F1ADTM',
-	'F1ADTS',
-	'F1SM',
-
-	'F2Name',
-	'F2Height',
-	'F2Reach',
-	'F2Age',
-
-	'F2SDBL',
-	'F2SDBA',
-	'F2SDHL',
-	'F2SDHA',
-	'F2SDLL',
-	'F2SDLA',
-	'F2TSL',
-	'F2TSA',
-	'F2SSL',
-	'F2SSA',
-	'F2SA',
-	'F2KD',
-
-	'F2SCBL',
-	'F2SCBA',
-	'F2SCHL',
-	'F2SCHA',
-	'F2SCLl',
-	'F2SCLA',
-	'F2RV',
-	'F2SR',
-	'F2TDL',
-	'F2TDA',
-	'F2TDS',
-
-	'F2SGBL',
-	'F2SGBA',
-	'F2SGHL',
-	'F2SGHA',
-	'F2SGLL',
-	'F2SGLA',
-	'F2AD',
-	'F2ADTB',
-	'F2ADHG',
-	'F2ADTM',
-	'F2ADTS',
-	'F2SM'
-]
+from enum import Enum
 
 class ExcelWriter:
 	""" writes data to excel sheet and save it into a file
 
 	"""
+
+	# create a global variable of header list
+	header_list = [
+		'Date',
+		'WeightClass',
+		'Winner',
+		'DecisionType',
+		'Rounds',
+		'Time',
+		'IsTitle?',
+		'F1Name',
+		'F1Height',
+		'F1Reach',
+		'F1Age',
+
+		'F1SDBL',
+		'F1SDBA',
+		'F1SDHL',
+		'F1SDHA',
+		'F1SDLL',
+		'F1SDLA',
+		'F1TSL',
+		'F1TSA',
+		'F1SSL',
+		'F1SSA',
+		'F1SA',
+		'F1KD',
+
+		'F1SCBL',
+		'F1SCBA',
+		'F1SCHL',
+		'F1SCHA',
+		'F1SCLl',
+		'F1SCLA',
+		'F1RV',
+		'F1SR',
+		'F1TDL',
+		'F1TDA',
+		'F1TDS',
+
+		'F1SGBL',
+		'F1SGBA',
+		'F1SGHL',
+		'F1SGHA',
+		'F1SGLL',
+		'F1SGLA',
+		'F1AD',
+		'F1ADTB',
+		'F1ADHG',
+		'F1ADTM',
+		'F1ADTS',
+		'F1SM',
+
+		'F2Name',
+		'F2Height',
+		'F2Reach',
+		'F2Age',
+
+		'F2SDBL',
+		'F2SDBA',
+		'F2SDHL',
+		'F2SDHA',
+		'F2SDLL',
+		'F2SDLA',
+		'F2TSL',
+		'F2TSA',
+		'F2SSL',
+		'F2SSA',
+		'F2SA',
+		'F2KD',
+
+		'F2SCBL',
+		'F2SCBA',
+		'F2SCHL',
+		'F2SCHA',
+		'F2SCLl',
+		'F2SCLA',
+		'F2RV',
+		'F2SR',
+		'F2TDL',
+		'F2TDA',
+		'F2TDS',
+
+		'F2SGBL',
+		'F2SGBA',
+		'F2SGHL',
+		'F2SGHA',
+		'F2SGLL',
+		'F2SGLA',
+		'F2AD',
+		'F2ADTB',
+		'F2ADHG',
+		'F2ADTM',
+		'F2ADTS',
+		'F2SM'
+	]
 
 	def __init__(self, xl_file):
 		""" constructor
@@ -185,7 +186,7 @@ class ExcelWriter:
 if __name__ == '__main__':
 
 	xw = ExcelWriter('xlwt_example')
-	xw.set_header_list(header_list)
+	xw.set_header_list(xw.header_list)
 	xw.done()
 	print('Created a temporary excel file with header only.')
 	print('Run the main script to scrap data.')
