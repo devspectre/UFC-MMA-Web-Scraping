@@ -367,8 +367,11 @@ def get_statistics(soup):
 
 	return standing_list, clinch_list, ground_list
 
+
 def read_db_and_write_to_excel():
-	""" 
+	""" get necessary data from database and output into database
+	param: None
+	return: None
 	"""
 
 	# create a DB instance
@@ -389,12 +392,11 @@ def fetch_information(start_id, url_list, key):
 	param key: first character of fighters' names
 	"""
 
-	# print(f'Key=\'{key}\', SID={start_id}, URL={url_list[0]}, COUNT={len(url_list)}')
-	# print()
-
-	# return
-
+	# total number of fighter information from all threads
+	# used to update progress bar
 	global fetched_fighter_count
+
+	# this bar represents total count from all threads
 	global bar
 
 	id_ = start_id
@@ -417,8 +419,8 @@ def fetch_information(start_id, url_list, key):
 		ginfo = get_general_info(soup)
 
 		if len(ginfo) == 0:
-			print(furl)
-			print('Cannot get general information from this url')
+			print(f'Cannot get general information from this url(F1): {furl}')
+			print()
 		
 		ginfo['url'] = furl
 
@@ -427,7 +429,7 @@ def fetch_information(start_id, url_list, key):
 		try:
 			source = requests.get(get_page_url(furl, 'stats')).text
 		except Exception as e:
-			print(f'Error(Main.request.get.stats): {str(e)}')
+			print(f'Error((F1)Main.request.get.stats): {str(e)}')
 			id_ += 1
 			continue
 		
@@ -445,11 +447,10 @@ def fetch_information(start_id, url_list, key):
 
 		id_ += 1
 
-	# if id_ - start_id >= len(url_list):
-	# 	bar.finish()
-
+	# add fetched data from a thread into a list(global variable)
 	info_list.append(tmp_list)
 
+	# all threads are completed, insert data into database
 	if len(info_list) >= total_thread_count:
 
 		bar.finish()
@@ -464,9 +465,12 @@ def fetch_information(start_id, url_list, key):
 
 		counter = 0
 
+		# begin transaction on sqlite3 database
+		# NOTE: this is important to optimize writing performance
 		db.execute('BEGIN TRANSACTION')
 
-		for info in info_list:
+		# bulk insert into database
+		for info in info_list: # loop through information list fetched
 			for item in info:
 				db.insert_into_table_fighters(item[0], item[1])
 				db.insert_into_table_history(item[0], item[2])
@@ -474,18 +478,20 @@ def fetch_information(start_id, url_list, key):
 				db.insert_into_table_clinch_stats(item[0], item[4])
 				db.insert_into_table_ground_stats(item[0], item[5])
 
+			# increase counter to update progress bar
 			counter += 1
+
+			# update progress bar
 			db_bar.update(counter)
 
 		db_bar.finish()
 
+		# commit all pending insert queries
 		db.execute('COMMIT')
 
-		db.close_connection()
+		print('Writing fetched data into database is completed!')
 
-		read_db_and_write_to_excel()
-
-		print('Done!')
+		# db.get_rows_for_schema()
 
 # Signal handler
 # This will prevent to show complicated text of exceptions on keyboard interrupt
@@ -505,6 +511,7 @@ if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signal_handler)
 
 	fighter_urls = {}
+
 	search_keys = list(string.ascii_lowercase)
 
 	print("Fetching urls of fighters...")
@@ -515,9 +522,11 @@ if __name__ == "__main__":
 	global total_fighter_count
 	total_fighter_count = 0
 
+	# this is used to update progress bar for scraping
 	global fetched_fighter_count
 	fetched_fighter_count = 0
 
+	# represents total count of threads to scrap
 	global total_thread_count
 	total_thread_count = 0
 
@@ -531,16 +540,21 @@ if __name__ == "__main__":
 			I am sure that it won't happen in this case -  23821 requests in total.
 			But also, network bandwith is another issue though
 	"""
+
 	thread_distribution_mode = 'specify_count_per_thread'
 
+	# represents how many urls are charged for each thread
 	count_per_thread = 50
 
+	# list of urls of fighters
 	all_url_list = []
 
+	# this progress bar is used to show the progress of fetching urls of all fighters
 	url_bar = progressbar.ProgressBar(maxval=len(search_keys), \
 		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(search_keys))])
 	url_bar.start()
 
+	# this mode does create 26 threads for each alphabet
 	if thread_distribution_mode == 'alphabet':
 
 		try:
@@ -551,31 +565,33 @@ if __name__ == "__main__":
 				total_fighter_count += len(url_list)
 				total_thread_count = len(fighter_urls)
 				url_bar.update(index + 1)
+
 		except Exception as e:
+
 			print(f'Failed to fetch urls due to error: {str(e)}')
 			exit()
-
+	# this mode do multithreading to speed up scraping
 	elif thread_distribution_mode == 'specify_count_per_thread':
 		try:
 			for index, key in enumerate(search_keys):
-				# debug code
-				# if index > 1:
-				# 	continue
 
 				url_list = get_fighter_url_list_startwith(key)
 				all_url_list += url_list
 				total_fighter_count += len(url_list)
 				url_bar.update(index + 1)
 
+			# divide all_url_list into smaller lists which contain 'count_per_thread' number of fighter urls maximum
 			tmp_list = [all_url_list[x:x + count_per_thread] for x in range(0, len(all_url_list), count_per_thread)]
 
 			all_url_list.clear()
 
 			all_url_list = tmp_list
 
+			# get required thread count
 			total_thread_count = len(all_url_list)
 
 		except Exception as e:
+
 			print(f'Failed to fetch urls due to error: {str(e)}')
 			url_bar.finish()
 			exit()
@@ -586,16 +602,9 @@ if __name__ == "__main__":
 
 	url_bar.finish()
 
-
 	print(f'Fetched {total_fighter_count} urls in total!')
 
-	# all_list['a'] = get_fighter_url_list_startwith('a')
-
-	print("Fetching fighters' urls done!")
-
 	key_index = 0
-	# count_per_alpha = 0
-	# limit_per_alpha = 30
 
 	print("Scraping information...")
 
@@ -603,15 +612,14 @@ if __name__ == "__main__":
 	global info_list
 	info_list = []
 
-	# db_thread = threading.Thread(target=write_to_db)
-	# db_thread.start()
-
+	# this progress bar shows the progress of scraping informations of fighters, history, statistics ...
 	global bar
 
 	bar = progressbar.ProgressBar(maxval=total_fighter_count, \
 		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(total_fighter_count)])
 	bar.start()
 
+	# create threads that do actual scraping
 	if thread_distribution_mode == 'alphabet':
 
 		for key in search_keys:
@@ -628,5 +636,4 @@ if __name__ == "__main__":
 			thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, str(index + 1)))
 
 			thread_.start()
-		
 	
