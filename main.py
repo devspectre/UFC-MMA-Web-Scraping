@@ -1,3 +1,4 @@
+import sys, getopt
 import requests
 import string
 from queue import Queue
@@ -491,12 +492,14 @@ def fetch_information(start_id, url_list, key):
 
 		print('Writing fetched data into database is completed!')
 
-		# db.get_rows_for_schema()
+		if work_mode == 0:
+			db.get_rows_for_schema()
 
-# Signal handler
-# This will prevent to show complicated text of exceptions on keyboard interrupt
+		print('Done!')
+
 def signal_handler(sig, frame):
-	""" handles signals
+	""" Signal handler
+		This will prevent to show complicated text of exceptions on keyboard interrupt
 	param sig: signal identifier
 	param frame:
 	return:
@@ -504,136 +507,185 @@ def signal_handler(sig, frame):
 
 	print(f'SIGNAL {sig} CAUGHT.')
 	print('End the process according to request.')
-	exit(0)
+	sys.exit()
+
+def parse_args(argv):
+	""" main function to handle argument parsing and do actual work
+	param argv: list of argument
+	return: mode as a single digit
+	"""
+
+	# value 0: default mode | scrap >> write_to_database >> output to excel
+	# value 1: scrap >> write_to_database
+	# value 2: output to excel based on already existing databse
+	mode = 0
+
+	try:
+		opts, args = getopt.getopt(argv,"hm:", ["mode="])
+	except getopt.GetoptError:
+		print('Argument Error: python main.py -m <number>')
+		sys.exit()
+
+	for opt, arg in opts:
+		if opt == '-h':
+			print('python main.py -m <number>')
+			print('Mode 0: default mode | scrap >> write_to_database >> output to excel')
+			print('Mode 1: scrap >> write_to_database')
+			print('Mode 2: output to excel based on already existing databse')
+			sys.exit(2)
+		elif opt in ("-m", "--mode"):
+			mode = int(arg)
+
+	if mode not in range(0, 3):
+		print('Argument Error: Mode should be in range 0 ~ 2')
+		print('Mode 0: default mode | scrap >> write_to_database >> output to excel')
+		print('Mode 1: scrap >> write_to_database')
+		print('Mode 2: output to excel based on already existing databse')
+		sys.exit()
+
+	return mode
 
 if __name__ == "__main__":
 
+	""" represents how the script should work
+	value True: Just scrap and write to database without excel output
+	value False: scrap, write to db and make excel output
+	"""
+	global work_mode
+
+	work_mode = parse_args(sys.argv[1:])
+	
 	signal.signal(signal.SIGINT, signal_handler)
 
-	fighter_urls = {}
+	if work_mode == 2:
+		db = database.UFCHistoryDB('ufc_history.db')
+		db.get_rows_for_schema()
+	else:
 
-	search_keys = list(string.ascii_lowercase)
+		fighter_urls = {}
 
-	print("Fetching urls of fighters...")
+		search_keys = list(string.ascii_lowercase)
 
-	count_list = []
+		print("Fetching urls of fighters...")
 
-	# global variable for total count of fighters
-	global total_fighter_count
-	total_fighter_count = 0
+		count_list = []
 
-	# this is used to update progress bar for scraping
-	global fetched_fighter_count
-	fetched_fighter_count = 0
+		# global variable for total count of fighters
+		global total_fighter_count
+		total_fighter_count = 0
 
-	# represents total count of threads to scrap
-	global total_thread_count
-	total_thread_count = 0
+		# this is used to update progress bar for scraping
+		global fetched_fighter_count
+		fetched_fighter_count = 0
 
-	""" defines how to split list into threads
-	value 'alphabet': all urls of fighters whose name starts with a unique alphabet goes into a single thread
-	value 'specify_count_per_thread': every thread contains only specified number of urls
+		# represents total count of threads to scrap
+		global total_thread_count
+		total_thread_count = 0
 
-	NOTE: 	Confirm that 'specify_count_per_thread' mode does not cause DOS(Denial of service)
-			Current site has got 23821 fighters' information.
-			Making a lot of concurrent requests to the site might cause DOS
-			I am sure that it won't happen in this case -  23821 requests in total.
-			But also, network bandwith is another issue though
-	"""
+		""" defines how to split list into threads
+		value 'alphabet': all urls of fighters whose name starts with a unique alphabet goes into a single thread
+		value 'specify_count_per_thread': every thread contains only specified number of urls
 
-	thread_distribution_mode = 'specify_count_per_thread'
+		NOTE: 	Confirm that 'specify_count_per_thread' mode does not cause DOS(Denial of service)
+				Current site has got 23821 fighters' information.
+				Making a lot of concurrent requests to the site might cause DOS
+				I am sure that it won't happen in this case -  23821 requests in total.
+				But also, network bandwith is another issue though
+		"""
 
-	# represents how many urls are charged for each thread
-	count_per_thread = 50
+		thread_distribution_mode = 'specify_count_per_thread'
 
-	# list of urls of fighters
-	all_url_list = []
+		# represents how many urls are charged for each thread
+		count_per_thread = 50
 
-	# this progress bar is used to show the progress of fetching urls of all fighters
-	url_bar = progressbar.ProgressBar(maxval=len(search_keys), \
-		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(search_keys))])
-	url_bar.start()
+		# list of urls of fighters
+		all_url_list = []
 
-	# this mode does create 26 threads for each alphabet
-	if thread_distribution_mode == 'alphabet':
+		# this progress bar is used to show the progress of fetching urls of all fighters
+		url_bar = progressbar.ProgressBar(maxval=len(search_keys), \
+			widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(search_keys))])
+		url_bar.start()
 
-		try:
-			for index, key in enumerate(search_keys):
-				url_list = get_fighter_url_list_startwith(key)
-				fighter_urls[key] = url_list
-				count_list.append(len(url_list))
-				total_fighter_count += len(url_list)
-				total_thread_count = len(fighter_urls)
-				url_bar.update(index + 1)
+		# this mode does create 26 threads for each alphabet
+		if thread_distribution_mode == 'alphabet':
 
-		except Exception as e:
+			try:
+				for index, key in enumerate(search_keys):
+					url_list = get_fighter_url_list_startwith(key)
+					fighter_urls[key] = url_list
+					count_list.append(len(url_list))
+					total_fighter_count += len(url_list)
+					total_thread_count = len(fighter_urls)
+					url_bar.update(index + 1)
 
-			print(f'Failed to fetch urls due to error: {str(e)}')
-			exit()
-	# this mode do multithreading to speed up scraping
-	elif thread_distribution_mode == 'specify_count_per_thread':
-		try:
-			for index, key in enumerate(search_keys):
+			except Exception as e:
 
-				url_list = get_fighter_url_list_startwith(key)
-				all_url_list += url_list
-				total_fighter_count += len(url_list)
-				url_bar.update(index + 1)
+				print(f'Failed to fetch urls due to error: {str(e)}')
+				exit()
+		# this mode do multithreading to speed up scraping
+		elif thread_distribution_mode == 'specify_count_per_thread':
+			try:
+				for index, key in enumerate(search_keys):
 
-			# divide all_url_list into smaller lists which contain 'count_per_thread' number of fighter urls maximum
-			tmp_list = [all_url_list[x:x + count_per_thread] for x in range(0, len(all_url_list), count_per_thread)]
+					url_list = get_fighter_url_list_startwith(key)
+					all_url_list += url_list
+					total_fighter_count += len(url_list)
+					url_bar.update(index + 1)
 
-			all_url_list.clear()
+				# divide all_url_list into smaller lists which contain 'count_per_thread' number of fighter urls maximum
+				tmp_list = [all_url_list[x:x + count_per_thread] for x in range(0, len(all_url_list), count_per_thread)]
 
-			all_url_list = tmp_list
+				all_url_list.clear()
 
-			# get required thread count
-			total_thread_count = len(all_url_list)
+				all_url_list = tmp_list
 
-		except Exception as e:
+				# get required thread count
+				total_thread_count = len(all_url_list)
 
-			print(f'Failed to fetch urls due to error: {str(e)}')
+			except Exception as e:
+
+				print(f'Failed to fetch urls due to error: {str(e)}')
+				url_bar.finish()
+				exit()
+		else:
+			print('Unknown thread_distribution_mode.')
 			url_bar.finish()
 			exit()
-	else:
-		print('Unknown thread_distribution_mode.')
+
 		url_bar.finish()
-		exit()
 
-	url_bar.finish()
+		print(f'Fetched {total_fighter_count} urls in total!')
 
-	print(f'Fetched {total_fighter_count} urls in total!')
+		key_index = 0
 
-	key_index = 0
+		print("Scraping information...")
 
-	print("Scraping information...")
+		# list that contains all information fetched
+		global info_list
+		info_list = []
 
-	# list that contains all information fetched
-	global info_list
-	info_list = []
+		# this progress bar shows the progress of scraping informations of fighters, history, statistics ...
+		global bar
 
-	# this progress bar shows the progress of scraping informations of fighters, history, statistics ...
-	global bar
+		bar = progressbar.ProgressBar(maxval=total_fighter_count, \
+			widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(total_fighter_count)])
+		bar.start()
 
-	bar = progressbar.ProgressBar(maxval=total_fighter_count, \
-		widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(total_fighter_count)])
-	bar.start()
+		# create threads that do actual scraping
+		if thread_distribution_mode == 'alphabet':
 
-	# create threads that do actual scraping
-	if thread_distribution_mode == 'alphabet':
+			for key in search_keys:
 
-		for key in search_keys:
+				thread_ = threading.Thread(target=fetch_information, args=(sum(count_list[:key_index]) + 1, fighter_urls[key], key))
 
-			thread_ = threading.Thread(target=fetch_information, args=(sum(count_list[:key_index]) + 1, fighter_urls[key], key))
+				key_index += 1
 
-			key_index += 1
+				thread_.start()
+		elif thread_distribution_mode == 'specify_count_per_thread':
 
-			thread_.start()
-	elif thread_distribution_mode == 'specify_count_per_thread':
+			for index, list_ in enumerate(all_url_list):
 
-		for index, list_ in enumerate(all_url_list):
+				thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, str(index + 1)))
 
-			thread_ = threading.Thread(target=fetch_information, args=(count_per_thread * index + 1, list_, str(index + 1)))
-
-			thread_.start()
+				thread_.start()
 	
