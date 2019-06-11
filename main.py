@@ -176,7 +176,7 @@ def get_general_info(soup):
 	except Exception as e:
 		pass
 
-	info_list['name'] = name
+	info_list['name'] = name.strip()
 	info_list['age'] = age
 	info_list['reach'] = reach
 	info_list['weight_class'] = weight_class
