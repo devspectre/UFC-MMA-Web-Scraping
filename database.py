@@ -22,10 +22,8 @@ class UFCHistoryDB:
 				os.makedirs(sub_folder)
 			dir_path = os.path.dirname(os.path.realpath(__file__))
 			self.db_file_ = f'{dir_path}\\{sub_folder}\\{db_file}'
-			self.full_path = f'{dir_path}\\{sub_folder}'
 		else:
-			self.db_file_ = db_file
-			self.full_path = os.path.dirname(os.path.realpath(__file__))
+			self.db_file_ = os.path.join(os.path.dirname(os.path.realpath(__file__)), db_file)
 
 		# is_db_file_deleted = self.delete_database()
 		if delete_if_exists and os.path.isfile(self.db_file_):
