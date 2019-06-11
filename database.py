@@ -1,3 +1,4 @@
+
 import sqlite3
 import os
 import sys
@@ -541,12 +542,20 @@ class UFCHistoryDB:
 		return: 
 		"""
 
-		conn_ = sqlite3.connect(db_file)
+		try:
+			conn_ = sqlite3.connect(db_file)
 
-		cursor = conn_.cursor()
+			cursor = conn_.cursor()
+		except Exception as e:
+			print(f'Thread({index}): Cannot connect to database {db_file}')
+			return
+		
 
 		for row in rows:
-			# print(row)
+
+			if row is None or len(row) == 0:
+				continue
+
 			# dictionary to contain match information
 			dictionary = {}
 
