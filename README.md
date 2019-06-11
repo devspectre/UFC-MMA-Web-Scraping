@@ -10,11 +10,14 @@ Make sure you've installed those dependencies.
 Run the script in command line.
 
 python main.py
+
 python main.py -m <mode_number>
 
 
 mode_number:
             0: default mode | scrap >> write_to_database >> output to excel
+            
             1: scrap >> write_to_database'
+            
             2: output to excel based on already existing databse
 
