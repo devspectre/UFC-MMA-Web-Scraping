@@ -843,7 +843,317 @@ class UFCHistoryDB:
 		# remove temp files and folder
 		if len(self.rows_for_schema) >= self.total_row_count:
 			self.write_to_excel(self.rows_for_schema)
+			self.write_match_history(self.rows_for_schema, is_sum = True)
 			rmtree(self.tmp_dir)
+
+	def write_match_history(self, rows, is_sum = False, write_to_db = False, db_name = 'match_history.db'):
+		""" write match history to a database
+		param rows: actual data list
+		param db_name: match history database name
+		param is_sum: True: get sum of each statistics value up to the match point, False: just write the statistic value of that match
+		return:
+		"""
+
+		rows_ = []
+
+		if is_sum:
+			tmp_list = rows
+
+			print('Doing the sum on statistics...')
+
+			sum_bar = progressbar.ProgressBar(maxval=len(tmp_list), \
+									widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(tmp_list))])
+
+			sum_bar.start()
+
+			index = 0
+
+			for row in tmp_list: # iterate over the list
+				if row is None or len(row) == 0:
+					# update progress bar and skip over
+					index += 1
+					sum_bar.update(index)
+					continue
+
+				try:
+					# iterate over matching rows and get sum of each statistic value for figter 1
+					for item in [r for r in tmp_list if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+						row['F1SDBL'] = UFCHistoryDB.atoi(row['F1SDBL']) + UFCHistoryDB.atoi(item['F1SDBL'])
+						row['F1SDBA'] = UFCHistoryDB.atoi(row['F1SDBA']) + UFCHistoryDB.atoi(item['F1SDBA'])
+						row['F1SDHL'] = UFCHistoryDB.atoi(row['F1SDHL']) + UFCHistoryDB.atoi( item['F1SDHL'])
+						row['F1SDHA'] = UFCHistoryDB.atoi(row['F1SDHA']) + UFCHistoryDB.atoi(item['F1SDHA'])
+						row['F1SDLL'] = UFCHistoryDB.atoi(row['F1SDLL']) + UFCHistoryDB.atoi(item['F1SDLL'])
+						row['F1SDLA'] =  UFCHistoryDB.atoi(row['F1SDLA']) + UFCHistoryDB.atoi(item['F1SDLA'])
+						row['F1TSL'] = UFCHistoryDB.atoi(row['F1TSL']) + UFCHistoryDB.atoi(item['F1TSL'])
+						row['F1TSA'] = UFCHistoryDB.atoi(row['F1TSA']) + UFCHistoryDB.atoi(item['F1TSA'])
+						row['F1SSL'] = UFCHistoryDB.atoi(row['F1SSL']) + UFCHistoryDB.atoi(item['F1SSL'])
+						row['F1SSA'] = UFCHistoryDB.atoi(row['F1SSA']) + UFCHistoryDB.atoi(item['F1SSA'])
+						row['F1SA'] = UFCHistoryDB.atoi(row['F1SA']) + UFCHistoryDB.atoi(item['F1SA'])
+						row['F1KD'] = UFCHistoryDB.atoi(row['F1KD']) + UFCHistoryDB.atoi(item['F1KD'])
+
+						row['F1SCBL'] = UFCHistoryDB.atoi(row['F1SCBL']) + UFCHistoryDB.atoi(item['F1SCBL'])
+						row['F1SCBA'] = UFCHistoryDB.atoi(row['F1SCBA'] ) + UFCHistoryDB.atoi(item['F1SCBA'])
+						row['F1SCHL'] = UFCHistoryDB.atoi(row['F1SCHL']) + UFCHistoryDB.atoi(item['F1SCHL'])
+						row['F1SCHA'] = UFCHistoryDB.atoi(row['F1SCHA']) + UFCHistoryDB.atoi(item['F1SCHA'])
+						row['F1SCLL'] = UFCHistoryDB.atoi(row['F1SCLL']) + UFCHistoryDB.atoi(item['F1SCLL'])
+						row['F1SCLA'] = UFCHistoryDB.atoi(row['F1SCLA']) + UFCHistoryDB.atoi(item['F1SCLA'])
+						row['F1RV'] = UFCHistoryDB.atoi(row['F1RV']) + UFCHistoryDB.atoi(item['F1RV'])
+						row['F1SR'] = UFCHistoryDB.atoi(row['F1SR']) + UFCHistoryDB.atoi(item['F1SR'])
+						row['F1TDL'] = UFCHistoryDB.atoi(row['F1TDL']) + UFCHistoryDB.atoi(item['F1TDL'])
+						row['F1TDA'] = UFCHistoryDB.atoi(row['F1TDA']) + UFCHistoryDB.atoi(item['F1TDA'])
+						row['F1TDS'] = UFCHistoryDB.atoi(row['F1TDS']) + UFCHistoryDB.atoi(item['F1TDS'])
+
+						row['F1SGBL'] = UFCHistoryDB.atoi(row['F1SGBL']) + UFCHistoryDB.atoi(item['F1SGBL'])
+						row['F1SGBA'] = UFCHistoryDB.atoi(row['F1SGBA']) + UFCHistoryDB.atoi(item['F1SGBA'])
+						row['F1SGHL'] = UFCHistoryDB.atoi(row['F1SGHL']) + UFCHistoryDB.atoi(item['F1SGHL'])
+						row['F1SGHA'] = UFCHistoryDB.atoi(row['F1SGHA']) + UFCHistoryDB.atoi(item['F1SGHA'])
+						row['F1SGLL'] = UFCHistoryDB.atoi(row['F1SGLL']) + UFCHistoryDB.atoi(item['F1SGLL'])
+						row['F1SGLA'] = UFCHistoryDB.atoi(row['F1SGLA']) + UFCHistoryDB.atoi(item['F1SGLA'])
+						row['F1AD'] = UFCHistoryDB.atoi(row['F1AD']) + UFCHistoryDB.atoi(item['F1AD'])
+						row['F1ADTB'] = UFCHistoryDB.atoi(row['F1ADTB'] ) + UFCHistoryDB.atoi(item['F1ADTB'])
+						row['F1ADHG'] = UFCHistoryDB.atoi(row['F1ADHG']) + UFCHistoryDB.atoi(item['F1ADHG'])
+						row['F1ADTM'] = UFCHistoryDB.atoi(row['F1ADTM']) + UFCHistoryDB.atoi(item['F1ADTM'])
+						row['F1ADTS'] = UFCHistoryDB.atoi(row['F1ADTS']) + UFCHistoryDB.atoi(item['F1ADTS'])
+						row['F1SM'] = UFCHistoryDB.atoi(row['F1SM']) + UFCHistoryDB.atoi(item['F1SM'])
+
+					# iterate over matching rows and get sum of each statistic value for figter 1
+					for item in [r for r in tmp_list if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+						row['F2SDBL'] = UFCHistoryDB.atoi(row['F2SDBL']) + UFCHistoryDB.atoi(item['F2SDBL'])
+						row['F2SDBA'] = UFCHistoryDB.atoi(row['F2SDBA']) + UFCHistoryDB.atoi(item['F2SDBA'])
+						row['F2SDHL'] = UFCHistoryDB.atoi(row['F2SDHL']) + UFCHistoryDB.atoi( item['F2SDHL'])
+						row['F2SDHA'] = UFCHistoryDB.atoi(row['F2SDHA']) + UFCHistoryDB.atoi(item['F2SDHA'])
+						row['F2SDLL'] = UFCHistoryDB.atoi(row['F2SDLL']) + UFCHistoryDB.atoi(item['F2SDLL'])
+						row['F2SDLA'] =  UFCHistoryDB.atoi(row['F2SDLA']) + UFCHistoryDB.atoi(item['F2SDLA'])
+						row['F2TSL'] = UFCHistoryDB.atoi(row['F2TSL']) + UFCHistoryDB.atoi(item['F2TSL'])
+						row['F2TSA'] = UFCHistoryDB.atoi(row['F2TSA']) + UFCHistoryDB.atoi(item['F2TSA'])
+						row['F2SSL'] = UFCHistoryDB.atoi(row['F2SSL']) + UFCHistoryDB.atoi(item['F2SSL'])
+						row['F2SSA'] = UFCHistoryDB.atoi(row['F2SSA']) + UFCHistoryDB.atoi(item['F2SSA'])
+						row['F2SA'] = UFCHistoryDB.atoi(row['F2SA']) + UFCHistoryDB.atoi(item['F2SA'])
+						row['F2KD'] = UFCHistoryDB.atoi(row['F2KD']) + UFCHistoryDB.atoi(item['F2KD'])
+
+						row['F2SCBL'] = UFCHistoryDB.atoi(row['F2SCBL']) + UFCHistoryDB.atoi(item['F2SCBL'])
+						row['F2SCBA'] = UFCHistoryDB.atoi(row['F2SCBA'] ) + UFCHistoryDB.atoi(item['F2SCBA'])
+						row['F2SCHL'] = UFCHistoryDB.atoi(row['F2SCHL']) + UFCHistoryDB.atoi(item['F2SCHL'])
+						row['F2SCHA'] = UFCHistoryDB.atoi(row['F2SCHA']) + UFCHistoryDB.atoi(item['F2SCHA'])
+						row['F2SCLL'] = UFCHistoryDB.atoi(row['F2SCLL']) + UFCHistoryDB.atoi(item['F2SCLL'])
+						row['F2SCLA'] = UFCHistoryDB.atoi(row['F2SCLA']) + UFCHistoryDB.atoi(item['F2SCLA'])
+						row['F2RV'] = UFCHistoryDB.atoi(row['F2RV']) + UFCHistoryDB.atoi(item['F2RV'])
+						row['F2SR'] = UFCHistoryDB.atoi(row['F2SR']) + UFCHistoryDB.atoi(item['F2SR'])
+						row['F2TDL'] = UFCHistoryDB.atoi(row['F2TDL']) + UFCHistoryDB.atoi(item['F2TDL'])
+						row['F2TDA'] = UFCHistoryDB.atoi(row['F2TDA']) + UFCHistoryDB.atoi(item['F2TDA'])
+						row['F2TDS'] = UFCHistoryDB.atoi(row['F2TDS']) + UFCHistoryDB.atoi(item['F2TDS'])
+
+						row['F2SGBL'] = UFCHistoryDB.atoi(row['F2SGBL']) + UFCHistoryDB.atoi(item['F2SGBL'])
+						row['F2SGBA'] = UFCHistoryDB.atoi(row['F2SGBA']) + UFCHistoryDB.atoi(item['F2SGBA'])
+						row['F2SGHL'] = UFCHistoryDB.atoi(row['F2SGHL']) + UFCHistoryDB.atoi(item['F2SGHL'])
+						row['F2SGHA'] = UFCHistoryDB.atoi(row['F2SGHA']) + UFCHistoryDB.atoi(item['F2SGHA'])
+						row['F2SGLL'] = UFCHistoryDB.atoi(row['F2SGLL']) + UFCHistoryDB.atoi(item['F2SGLL'])
+						row['F2SGLA'] = UFCHistoryDB.atoi(row['F2SGLA']) + UFCHistoryDB.atoi(item['F2SGLA'])
+						row['F2AD'] = UFCHistoryDB.atoi(row['F2AD']) + UFCHistoryDB.atoi(item['F2AD'])
+						row['F2ADTB'] = UFCHistoryDB.atoi(row['F2ADTB'] ) + UFCHistoryDB.atoi(item['F2ADTB'])
+						row['F2ADHG'] = UFCHistoryDB.atoi(row['F2ADHG']) + UFCHistoryDB.atoi(item['F2ADHG'])
+						row['F2ADTM'] = UFCHistoryDB.atoi(row['F2ADTM']) + UFCHistoryDB.atoi(item['F2ADTM'])
+						row['F2ADTS'] = UFCHistoryDB.atoi(row['F2ADTS']) + UFCHistoryDB.atoi(item['F2ADTS'])
+						row['F2SM'] = UFCHistoryDB.atoi(row['F2SM']) + UFCHistoryDB.atoi(item['F2SM'])
+
+				except Exception as e:
+					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
+					continue
+
+				rows_.append(row)
+				# update progress bar
+				index += 1
+				sum_bar.update(index)
+
+			sum_bar.finish()
+
+			print('Doing the sum of statistics is done!')
+		else:
+			rows_ = rows
+
+		# write sumed rows to excel
+		self.write_to_excel(rows_, 'ufc_history_sum')
+
+		# write match history into database
+		if write_to_db:
+			try:
+				os.remove(db_name)
+			except Exception as e:
+				print(f'Failed to remove old db file: {str(e)}')
+
+			conn_ = None
+			cursor = None
+
+			try:
+				conn_ = sqlite3.connect(db_name)
+				cursor = conn_.cursor()
+			except Exception as e:
+				print(f'Exception(DB.write_match_history_to_db): Cannot connect to database {db_name} : {str(e)}')
+				return
+
+			if conn_ is None or cursor is None:
+				print('Failed to connect database(DB.write_match_history_to_db)')
+				return
+
+			cursor.execute("""CREATE TABLE IF NOT EXISTS MatchHistory (
+						match_id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+						match_date text NOT NULL,
+						weight_class text,
+						winner text,
+						decision_type text,
+						rounds integer,
+						match_time text,
+						is_title text,
+
+						f1id integer,
+						f1name text,
+						f1height text,
+						f1reach text,
+						f1age integer,
+						f1sdbl integer,
+						f1sdba integer,
+						f1sdhl integer,
+						f1sdha integer,
+						f1sdll integer,
+						f1sdla integer,
+						f1tsl integer,
+						f1tsa integer,
+						f1ssl integer,
+						f1ssa integer,
+						f1sa integer,
+						f1kd integer,
+
+						f1scbl integer,
+						f1scba integer,
+						f1schl integer,
+						f1scha integer,
+						f1scll integer,
+						f1scla integer,
+						f1rv integer,
+						f1sr integer,
+						f1tdl integer,
+						f1tda integer,
+						f1tds integer,
+
+						f1sgbl integer,
+						f1sgba integer,
+						f1sghl integer,
+						f1sgha integer,
+						f1sgll integer,
+						f1sgla integer,
+						f1ad integer,
+						f1adtb integer,
+						f1adhg integer,
+						f1adtm integer,
+						f1adts integer,
+						f1sm integer,
+
+						f2id integer,
+						f2name text,
+						f2height text,
+						f2reach text,
+						f2age integer,
+
+						f2sdbl integer,
+						f2sdba integer,
+						f2sdhl integer,
+						f2sdha integer,
+						f2sdll integer,
+						f2sdla integer,
+						f2tsl integer,
+						f2tsa integer,
+						f2ssl integer,
+						f2ssa integer,
+						f2sa integer,
+						f2kd integer,
+
+						f2scbl integer,
+						f2scba integer,
+						f2schl integer,
+						f2scha integer,
+						f2scll integer,
+						f2scla integer,
+						f2rv integer,
+						f2sr integer,
+						f2tdl integer,
+						f2tda integer,
+						f2tds integer,
+
+						f2sgbl integer,
+						f2sgba integer,
+						f2sghl integer,
+						f2sgha integer,
+						f2sgll integer,
+						f2sgla integer,
+						f2ad integer,
+						f2adtb integer,
+						f2adhg integer,
+						f2adtm integer,
+						f2adts integer,
+						f2sm integer
+						)""")
+
+			cursor.close()
+			conn_.close()
+
+			try:
+				conn_ = sqlite3.connect(db_name)
+				cursor = conn_.cursor()
+			except Exception as e:
+				print(f'Exception while reconnecting to database(DB.write_match_history_to_db): {str(e)}')
+				return
+
+			# bulk insert to database
+
+			sql = """ INSERT INTO MatchHistory (match_date, weight_class, winner, decision_type, rounds, match_time, is_title,
+									f1id, f1name, f1height,	f1reach, f1age,
+									f1sdbl, f1sdba, f1sdhl, f1sdha, f1sdll, f1sdla, f1tsl, f1tsa, f1ssl, f1ssa, f1sa, f1kd,
+									f1scbl, f1scba, f1schl, f1scha, f1scll,	f1scla, f1rv, f1sr, f1tdl, f1tda, f1tds,
+									f1sgbl, f1sgba, f1sghl, f1sgha, f1sgll, f1sgla, f1ad, f1adtb, f1adhg, f1adtm, f1adts, f1sm,
+									f2id, f2name, f2height, f2reach, f2age,
+									f2sdbl, f2sdba, f2sdhl, f2sdha, f2sdll, f2sdla, f2tsl, f2tsa, f2ssl, f2ssa, f2sa, f2kd,
+									f2scbl, f2scba, f2schl, f2scha, f2scll,	f2scla, f2rv, f2sr, f2tdl, f2tda, f2tds,
+									f2sgbl, f2sgba, f2sghl, f2sgha, f2sgll, f2sgla, f2ad, f2adtb, f2adhg, f2adtm, f2adts, f2sm)
+							 VALUES (?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+							 		?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			"""
+
+			cursor.execute('BEGIN TRANSACTION')
+			for row in rows_:
+				if row is None or len(row) == 0:
+					continue
+				try:
+					val = (row['Date'], row['WeightClass'], row['Winner'],	row['DecisionType'], row['Rounds'], row['Time'], row['IsTitle?'],
+						row['F1Id'], row['F1Name'], row['F1Height'], row['F1Reach'], row['F1Age'],
+						row['F1SDBL'], row['F1SDBA'], row['F1SDHL'], row['F1SDHA'], row['F1SDLL'], row['F1SDLA'], row['F1TSL'], row['F1TSA'], row['F1SSL'], row['F1SSA'], row['F1SA'], row['F1KD'],
+						row['F1SCBL'], row['F1SCBA'], row['F1SCHL'], row['F1SCHA'], row['F1SCLL'], row['F1SCLA'], row['F1RV'], row['F1SR'], row['F1TDL'], row['F1TDA'], row['F1TDS'], 
+						row['F1SGBL'], row['F1SGBA'], row['F1SGHL'], row['F1SGHA'], row['F1SGLL'], row['F1SGLA'], row['F1AD'], row['F1ADTB'], row['F1ADHG'], row['F1ADTM'], row['F1ADTS'], row['F1SM'],
+						row['F2Id'], row['F2Name'], row['F2Height'], row['F2Reach'], row['F2Age'],
+						row['F2SDBL'], row['F2SDBA'], row['F2SDHL'], row['F2SDHA'], row['F2SDLL'], row['F2SDLA'], row['F2TSL'], row['F2TSA'], row['F2SSL'], row['F2SSA'], row['F2SA'], row['F2KD'],
+						row['F2SCBL'], row['F2SCBA'], row['F2SCHL'], row['F2SCHA'], row['F2SCLL'], row['F2SCLA'], row['F2RV'], row['F2SR'], row['F2TDL'], row['F2TDA'], row['F2TDS'], 
+						row['F2SGBL'], row['F2SGBA'], row['F2SGHL'], row['F2SGHA'], row['F2SGLL'], row['F2SGLA'], row['F2AD'], row['F2ADTB'], row['F2ADHG'], row['F2ADTM'], row['F2ADTS'], row['F2SM'],
+						)
+				except Exception as e:
+					print(f'Exception while making query(DB.write_match_history_to_db): {str(e)}')
+					print(row)
+					continue
+				
+				cursor.execute(sql, val)
+
+			cursor.execute('COMMIT')
+		print('Writing match history done!')
+
+	def get_sum_up_to_point(self, db_name = 'match_history.db'):
+		""" get sum of each value of statistics up to the point
+		param rows: 
+		"""
 
 
 	def get_rows_for_schema(self):
