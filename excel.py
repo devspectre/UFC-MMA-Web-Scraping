@@ -1,7 +1,6 @@
 import xlsxwriter
 from xlsxwriter import Workbook
 import sqlite3
-from enum import Enum
 
 class ExcelWriter:
 	""" writes data to excel sheet and save it into a file
