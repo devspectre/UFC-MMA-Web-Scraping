@@ -395,14 +395,14 @@ class UFCHistoryDB:
 					print("Error while inserting into table 'GroundStatistics':", str(e))
 					print("Query : ", sql, val)
 
-	def write_to_excel(self, rows):
+	def write_to_excel(self, rows, file_name = 'ufc_history'):
 		""" writes rows to excel
 		param rows: a list of dictionaries
 		return: number of rows written successfully
 		"""
 
 		# create an excel writer instance
-		xw = ExcelWriter('ufc_history')
+		xw = ExcelWriter(file_name)
 		
 		# create horizontal header
 		xw.set_header_list(xw.header_list)
