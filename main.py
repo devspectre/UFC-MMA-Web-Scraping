@@ -1,7 +1,6 @@
 import sys, getopt
 import requests
 import string
-from queue import Queue
 import threading
 import signal
 import progressbar
