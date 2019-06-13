@@ -7,6 +7,7 @@ import progressbar
 from shutil import copyfile
 from shutil import rmtree
 from excel import ExcelWriter
+from datetime import datetime as DT
 
 class UFCHistoryDB:
 	""" manages sqlite database
@@ -1187,7 +1188,7 @@ class UFCHistoryDB:
 			return
 
 		# this is used to check if all threads are finished
-		self.total_row_count = len(rows)
+		# self.total_row_count = len(rows)
 
 		# shows the progress of total processing
 		self.get_rows_bar = progressbar.ProgressBar(maxval=len(rows), \
