@@ -661,6 +661,46 @@ class UFCHistoryDB:
 				print(f'Error(DB.get_rows_for_schema): {str(e)}')
 				print("Cannot get statistics information due to above error.")
 
+			# fill up missing entries with empty string
+			if 'F1SDBL' not in dictionary:
+				dictionary['F1SDBL'] = ''
+				dictionary['F1SDBA'] = ''
+				dictionary['F1SDHL'] = ''
+				dictionary['F1SDHA'] = ''
+				dictionary['F1SDLL'] = ''
+				dictionary['F1SDLA'] = ''
+				dictionary['F1TSL'] = ''
+				dictionary['F1TSA'] = ''
+				dictionary['F1SSL'] = ''
+				dictionary['F1SSA'] = ''
+				dictionary['F1SA'] = ''
+				dictionary['F1KD'] = ''
+
+				dictionary['F1SCBL'] = ''
+				dictionary['F1SCBA'] = ''
+				dictionary['F1SCHL'] = ''
+				dictionary['F1SCHA'] = ''
+				dictionary['F1SCLL'] = ''
+				dictionary['F1SCLA'] = ''
+				dictionary['F1RV'] = ''
+				dictionary['F1SR'] = ''
+				dictionary['F1TDL'] = ''
+				dictionary['F1TDA'] = ''
+				dictionary['F1TDS'] = ''
+
+				dictionary['F1SGBL'] = ''
+				dictionary['F1SGBA'] = ''
+				dictionary['F1SGHL'] = ''
+				dictionary['F1SGHA'] = ''
+				dictionary['F1SGLL'] = ''
+				dictionary['F1SGLA'] = ''
+				dictionary['F1AD'] = ''
+				dictionary['F1ADTB'] = ''
+				dictionary['F1ADHG'] = ''
+				dictionary['F1ADTM'] = ''
+				dictionary['F1ADTS'] = ''
+				dictionary['F1SM'] = ''
+
 			# Fighter 2 General Information
 			
 			sql = "SELECT id, name, height, reach, age FROM Fighters WHERE name=? and url=?"
@@ -742,8 +782,56 @@ class UFCHistoryDB:
 				print(f'Error(DB.get_rows_for_schema): {str(e)}')
 				print("Cannot get Statistics information due to above error(F2).")
 
+			# fill up missing entries with empty string
+			if 'F2SDBL' not in dictionary:
+				dictionary['F2SDBL'] = ''
+				dictionary['F2SDBA'] = ''
+				dictionary['F2SDHL'] = ''
+				dictionary['F2SDHA'] = ''
+				dictionary['F2SDLL'] = ''
+				dictionary['F2SDLA'] = ''
+				dictionary['F2TSL'] = ''
+				dictionary['F2TSA'] = ''
+				dictionary['F2SSL'] = ''
+				dictionary['F2SSA'] = ''
+				dictionary['F2SA'] = ''
+				dictionary['F2KD'] = ''
+
+				dictionary['F2SCBL'] = ''
+				dictionary['F2SCBA'] = ''
+				dictionary['F2SCHL'] = ''
+				dictionary['F2SCHA'] = ''
+				dictionary['F2SCLL'] = ''
+				dictionary['F2SCLA'] = ''
+				dictionary['F2RV'] = ''
+				dictionary['F2SR'] = ''
+				dictionary['F2TDL'] = ''
+				dictionary['F2TDA'] = ''
+				dictionary['F2TDS'] = ''
+
+				dictionary['F2SGBL'] = ''
+				dictionary['F2SGBA'] = ''
+				dictionary['F2SGHL'] = ''
+				dictionary['F2SGHA'] = ''
+				dictionary['F2SGLL'] = ''
+				dictionary['F2SGLA'] = ''
+				dictionary['F2AD'] = ''
+				dictionary['F2ADTB'] = ''
+				dictionary['F2ADHG'] = ''
+				dictionary['F2ADTM'] = ''
+				dictionary['F2ADTS'] = ''
+				dictionary['F2SM'] = ''
+
+			# check if duplicates exist
+			duplicate_list = [r for r in self.rows_for_schema if 'Date' in r and r['Date'] == dictionary['Date'] and r['Winner'] == dictionary['Winner'] 
+									and r['Time'] == dictionary['Time'] and r['IsTitle?'] == dictionary['IsTitle?'] and r['DecisionType'] == dictionary['DecisionType']]
+
 			# the dictionary is filled up, let's add it into the list
-			self.rows_for_schema.append(dictionary)
+			# if duplicated, append empty dict
+			if len(duplicate_list) == 0:
+				self.rows_for_schema.append(dictionary)
+			else:
+				self.rows_for_schema.append({})
 			
 			self.get_rows_bar.update(len(self.rows_for_schema))
 
