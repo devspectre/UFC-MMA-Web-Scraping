@@ -534,6 +534,27 @@ class UFCHistoryDB:
 
 		print('Writing to excel is completed!')
 
+	@staticmethod
+	def atoi(a):
+		""" convert string to int
+		param a: source string
+		return: return converted integer if possible, return 0 if string is empty or any exception
+		"""
+
+		if isinstance(a, int):
+			return a
+
+		if a is None or len(a) == 0:
+			return 0
+
+		result = 0
+		try:
+			result = int(a)
+		except Exception as e:
+			return 0
+
+		return result
+
 	def get_rows(self, index, rows, db_file):
 		""" get rows within id_list
 		param index: thread index
