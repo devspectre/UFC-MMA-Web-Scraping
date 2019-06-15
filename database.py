@@ -891,91 +891,65 @@ class UFCHistoryDB:
 					continue
 
 				try:
-					# iterate over matching rows and get sum of each statistic value for figter 1
-					for item in [r for r in tmp_list if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]:
-						row['F1SDBL'] = UFCHistoryDB.atoi(row['F1SDBL']) + UFCHistoryDB.atoi(item['F1SDBL'])
-						row['F1SDBA'] = UFCHistoryDB.atoi(row['F1SDBA']) + UFCHistoryDB.atoi(item['F1SDBA'])
-						row['F1SDHL'] = UFCHistoryDB.atoi(row['F1SDHL']) + UFCHistoryDB.atoi( item['F1SDHL'])
-						row['F1SDHA'] = UFCHistoryDB.atoi(row['F1SDHA']) + UFCHistoryDB.atoi(item['F1SDHA'])
-						row['F1SDLL'] = UFCHistoryDB.atoi(row['F1SDLL']) + UFCHistoryDB.atoi(item['F1SDLL'])
-						row['F1SDLA'] =  UFCHistoryDB.atoi(row['F1SDLA']) + UFCHistoryDB.atoi(item['F1SDLA'])
-						row['F1TSL'] = UFCHistoryDB.atoi(row['F1TSL']) + UFCHistoryDB.atoi(item['F1TSL'])
-						row['F1TSA'] = UFCHistoryDB.atoi(row['F1TSA']) + UFCHistoryDB.atoi(item['F1TSA'])
-						row['F1SSL'] = UFCHistoryDB.atoi(row['F1SSL']) + UFCHistoryDB.atoi(item['F1SSL'])
-						row['F1SSA'] = UFCHistoryDB.atoi(row['F1SSA']) + UFCHistoryDB.atoi(item['F1SSA'])
-						row['F1SA'] = UFCHistoryDB.atoi(row['F1SA']) + UFCHistoryDB.atoi(item['F1SA'])
-						row['F1KD'] = UFCHistoryDB.atoi(row['F1KD']) + UFCHistoryDB.atoi(item['F1KD'])
 
-						row['F1SCBL'] = UFCHistoryDB.atoi(row['F1SCBL']) + UFCHistoryDB.atoi(item['F1SCBL'])
-						row['F1SCBA'] = UFCHistoryDB.atoi(row['F1SCBA'] ) + UFCHistoryDB.atoi(item['F1SCBA'])
-						row['F1SCHL'] = UFCHistoryDB.atoi(row['F1SCHL']) + UFCHistoryDB.atoi(item['F1SCHL'])
-						row['F1SCHA'] = UFCHistoryDB.atoi(row['F1SCHA']) + UFCHistoryDB.atoi(item['F1SCHA'])
-						row['F1SCLL'] = UFCHistoryDB.atoi(row['F1SCLL']) + UFCHistoryDB.atoi(item['F1SCLL'])
-						row['F1SCLA'] = UFCHistoryDB.atoi(row['F1SCLA']) + UFCHistoryDB.atoi(item['F1SCLA'])
-						row['F1RV'] = UFCHistoryDB.atoi(row['F1RV']) + UFCHistoryDB.atoi(item['F1RV'])
-						row['F1SR'] = UFCHistoryDB.atoi(row['F1SR']) + UFCHistoryDB.atoi(item['F1SR'])
-						row['F1TDL'] = UFCHistoryDB.atoi(row['F1TDL']) + UFCHistoryDB.atoi(item['F1TDL'])
-						row['F1TDA'] = UFCHistoryDB.atoi(row['F1TDA']) + UFCHistoryDB.atoi(item['F1TDA'])
-						row['F1TDS'] = UFCHistoryDB.atoi(row['F1TDS']) + UFCHistoryDB.atoi(item['F1TDS'])
+					result = Counter()
+					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+						for key, value in d.items():
+							if key.startswith('F1') and not (key.startswith('F1Id') or key.startswith('F1Name') or key.startswith('F1Age') or key.startswith('F1Height') or key.startswith('F1Reach')):
+								result[key] += value
+							else:
+								result[key] = value
 
-						row['F1SGBL'] = UFCHistoryDB.atoi(row['F1SGBL']) + UFCHistoryDB.atoi(item['F1SGBL'])
-						row['F1SGBA'] = UFCHistoryDB.atoi(row['F1SGBA']) + UFCHistoryDB.atoi(item['F1SGBA'])
-						row['F1SGHL'] = UFCHistoryDB.atoi(row['F1SGHL']) + UFCHistoryDB.atoi(item['F1SGHL'])
-						row['F1SGHA'] = UFCHistoryDB.atoi(row['F1SGHA']) + UFCHistoryDB.atoi(item['F1SGHA'])
-						row['F1SGLL'] = UFCHistoryDB.atoi(row['F1SGLL']) + UFCHistoryDB.atoi(item['F1SGLL'])
-						row['F1SGLA'] = UFCHistoryDB.atoi(row['F1SGLA']) + UFCHistoryDB.atoi(item['F1SGLA'])
-						row['F1AD'] = UFCHistoryDB.atoi(row['F1AD']) + UFCHistoryDB.atoi(item['F1AD'])
-						row['F1ADTB'] = UFCHistoryDB.atoi(row['F1ADTB'] ) + UFCHistoryDB.atoi(item['F1ADTB'])
-						row['F1ADHG'] = UFCHistoryDB.atoi(row['F1ADHG']) + UFCHistoryDB.atoi(item['F1ADHG'])
-						row['F1ADTM'] = UFCHistoryDB.atoi(row['F1ADTM']) + UFCHistoryDB.atoi(item['F1ADTM'])
-						row['F1ADTS'] = UFCHistoryDB.atoi(row['F1ADTS']) + UFCHistoryDB.atoi(item['F1ADTS'])
-						row['F1SM'] = UFCHistoryDB.atoi(row['F1SM']) + UFCHistoryDB.atoi(item['F1SM'])
+					# iterate over matching rows and get sum of each statistic value for figter 2
+					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+						for key, value in d.items():
+							if key.startswith('F2') and not (key.startswith('F12Id') or key.startswith('F2Name') or key.startswith('F2Age') or key.startswith('F2Height') or key.startswith('F2Reach')):
+								result[key] += value
+							else:
+								result[key] = value
+						# row['F2SDBL'] = row['F2SDBL'] + d['F2SDBL']
+						# row['F2SDBA'] = row['F2SDBA'] + d['F2SDBA']
+						# row['F2SDHL'] = row['F2SDHL'] + d['F2SDHL']
+						# row['F2SDHA'] = row['F2SDHA'] + d['F2SDHA']
+						# row['F2SDLL'] = row['F2SDLL'] + d['F2SDLL']
+						# row['F2SDLA'] =  row['F2SDLA'] + d['F2SDLA']
+						# row['F2TSL'] = row['F2TSL'] + d['F2TSL']
+						# row['F2TSA'] = row['F2TSA'] + d['F2TSA']
+						# row['F2SSL'] = row['F2SSL'] + d['F2SSL']
+						# row['F2SSA'] = row['F2SSA'] + d['F2SSA']
+						# row['F2SA'] = row['F2SA'] + d['F2SA']
+						# row['F2KD'] = row['F2KD'] + d['F2KD']
 
-					# iterate over matching rows and get sum of each statistic value for figter 1
-					for item in [r for r in tmp_list if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]:
-						row['F2SDBL'] = UFCHistoryDB.atoi(row['F2SDBL']) + UFCHistoryDB.atoi(item['F2SDBL'])
-						row['F2SDBA'] = UFCHistoryDB.atoi(row['F2SDBA']) + UFCHistoryDB.atoi(item['F2SDBA'])
-						row['F2SDHL'] = UFCHistoryDB.atoi(row['F2SDHL']) + UFCHistoryDB.atoi( item['F2SDHL'])
-						row['F2SDHA'] = UFCHistoryDB.atoi(row['F2SDHA']) + UFCHistoryDB.atoi(item['F2SDHA'])
-						row['F2SDLL'] = UFCHistoryDB.atoi(row['F2SDLL']) + UFCHistoryDB.atoi(item['F2SDLL'])
-						row['F2SDLA'] =  UFCHistoryDB.atoi(row['F2SDLA']) + UFCHistoryDB.atoi(item['F2SDLA'])
-						row['F2TSL'] = UFCHistoryDB.atoi(row['F2TSL']) + UFCHistoryDB.atoi(item['F2TSL'])
-						row['F2TSA'] = UFCHistoryDB.atoi(row['F2TSA']) + UFCHistoryDB.atoi(item['F2TSA'])
-						row['F2SSL'] = UFCHistoryDB.atoi(row['F2SSL']) + UFCHistoryDB.atoi(item['F2SSL'])
-						row['F2SSA'] = UFCHistoryDB.atoi(row['F2SSA']) + UFCHistoryDB.atoi(item['F2SSA'])
-						row['F2SA'] = UFCHistoryDB.atoi(row['F2SA']) + UFCHistoryDB.atoi(item['F2SA'])
-						row['F2KD'] = UFCHistoryDB.atoi(row['F2KD']) + UFCHistoryDB.atoi(item['F2KD'])
+						# row['F2SCBL'] = row['F2SCBL'] + d['F2SCBL']
+						# row['F2SCBA'] = row['F2SCBA'] + d['F2SCBA']
+						# row['F2SCHL'] = row['F2SCHL'] + d['F2SCHL']
+						# row['F2SCHA'] = row['F2SCHA'] + d['F2SCHA']
+						# row['F2SCLL'] = row['F2SCLL'] + d['F2SCLL']
+						# row['F2SCLA'] = row['F2SCLA'] + d['F2SCLA']
+						# row['F2RV'] = row['F2RV'] + d['F2RV']
+						# row['F2SR'] = row['F2SR'] + d['F2SR']
+						# row['F2TDL'] = row['F2TDL'] + d['F2TDL']
+						# row['F2TDA'] = row['F2TDA'] + d['F2TDA']
+						# row['F2TDS'] = row['F2TDS'] + d['F2TDS']
 
-						row['F2SCBL'] = UFCHistoryDB.atoi(row['F2SCBL']) + UFCHistoryDB.atoi(item['F2SCBL'])
-						row['F2SCBA'] = UFCHistoryDB.atoi(row['F2SCBA'] ) + UFCHistoryDB.atoi(item['F2SCBA'])
-						row['F2SCHL'] = UFCHistoryDB.atoi(row['F2SCHL']) + UFCHistoryDB.atoi(item['F2SCHL'])
-						row['F2SCHA'] = UFCHistoryDB.atoi(row['F2SCHA']) + UFCHistoryDB.atoi(item['F2SCHA'])
-						row['F2SCLL'] = UFCHistoryDB.atoi(row['F2SCLL']) + UFCHistoryDB.atoi(item['F2SCLL'])
-						row['F2SCLA'] = UFCHistoryDB.atoi(row['F2SCLA']) + UFCHistoryDB.atoi(item['F2SCLA'])
-						row['F2RV'] = UFCHistoryDB.atoi(row['F2RV']) + UFCHistoryDB.atoi(item['F2RV'])
-						row['F2SR'] = UFCHistoryDB.atoi(row['F2SR']) + UFCHistoryDB.atoi(item['F2SR'])
-						row['F2TDL'] = UFCHistoryDB.atoi(row['F2TDL']) + UFCHistoryDB.atoi(item['F2TDL'])
-						row['F2TDA'] = UFCHistoryDB.atoi(row['F2TDA']) + UFCHistoryDB.atoi(item['F2TDA'])
-						row['F2TDS'] = UFCHistoryDB.atoi(row['F2TDS']) + UFCHistoryDB.atoi(item['F2TDS'])
-
-						row['F2SGBL'] = UFCHistoryDB.atoi(row['F2SGBL']) + UFCHistoryDB.atoi(item['F2SGBL'])
-						row['F2SGBA'] = UFCHistoryDB.atoi(row['F2SGBA']) + UFCHistoryDB.atoi(item['F2SGBA'])
-						row['F2SGHL'] = UFCHistoryDB.atoi(row['F2SGHL']) + UFCHistoryDB.atoi(item['F2SGHL'])
-						row['F2SGHA'] = UFCHistoryDB.atoi(row['F2SGHA']) + UFCHistoryDB.atoi(item['F2SGHA'])
-						row['F2SGLL'] = UFCHistoryDB.atoi(row['F2SGLL']) + UFCHistoryDB.atoi(item['F2SGLL'])
-						row['F2SGLA'] = UFCHistoryDB.atoi(row['F2SGLA']) + UFCHistoryDB.atoi(item['F2SGLA'])
-						row['F2AD'] = UFCHistoryDB.atoi(row['F2AD']) + UFCHistoryDB.atoi(item['F2AD'])
-						row['F2ADTB'] = UFCHistoryDB.atoi(row['F2ADTB'] ) + UFCHistoryDB.atoi(item['F2ADTB'])
-						row['F2ADHG'] = UFCHistoryDB.atoi(row['F2ADHG']) + UFCHistoryDB.atoi(item['F2ADHG'])
-						row['F2ADTM'] = UFCHistoryDB.atoi(row['F2ADTM']) + UFCHistoryDB.atoi(item['F2ADTM'])
-						row['F2ADTS'] = UFCHistoryDB.atoi(row['F2ADTS']) + UFCHistoryDB.atoi(item['F2ADTS'])
-						row['F2SM'] = UFCHistoryDB.atoi(row['F2SM']) + UFCHistoryDB.atoi(item['F2SM'])
+						# row['F2SGBL'] = row['F2SGBL'] + d['F2SGBL']
+						# row['F2SGBA'] = row['F2SGBA'] + d['F2SGBA']
+						# row['F2SGHL'] = row['F2SGHL'] + d['F2SGHL']
+						# row['F2SGHA'] = row['F2SGHA'] + d['F2SGHA']
+						# row['F2SGLL'] = row['F2SGLL'] + d['F2SGLL']
+						# row['F2SGLA'] = row['F2SGLA'] + d['F2SGLA']
+						# row['F2AD'] = row['F2AD'] + d['F2AD']
+						# row['F2ADTB'] = row['F2ADTB'] + d['F2ADTB']
+						# row['F2ADHG'] = row['F2ADHG'] + d['F2ADHG']
+						# row['F2ADTM'] = row['F2ADTM'] + d['F2ADTM']
+						# row['F2ADTS'] = row['F2ADTS'] + d['F2ADTS']
+						# row['F2SM'] = row['F2SM'] + d['F2SM']
 
 				except Exception as e:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
 					continue
 
-				rows_.append(row)
+				rows_.append(result)
 				# update progress bar
 				index += 1
 				sum_bar.update(index)
