@@ -961,14 +961,19 @@ class UFCHistoryDB:
 			rows_ = rows
 
 		# write sumed rows to excel
-		self.write_to_excel(rows_, 'ufc_history_sum')
+		try:
+			self.write_to_excel(rows_, 'ufc_history_sum')
+		except Exception as e:
+			print(f'Failed to write excel file: {str(e)}')
+		
 
 		# write match history into database
 		if write_to_db:
 			try:
 				os.remove(db_name)
 			except Exception as e:
-				print(f'Failed to remove old db file: {str(e)}')
+				# print(f'Failed to remove old db file: {str(e)}')
+				pass
 
 			conn_ = None
 			cursor = None
