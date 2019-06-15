@@ -838,9 +838,27 @@ class UFCHistoryDB:
 		# check whether all threads are finished and then write to excel
 		# remove temp files and folder
 		if len(self.rows_for_schema) >= self.total_row_count:
-			self.write_to_excel(self.rows_for_schema)
-			self.write_match_history(self.rows_for_schema, is_sum = True)
+
+			# get rid of duplicates
+			done = set()
+			result = []
+			for row in self.rows_for_schema:
+				if 'Date' not in row: # skip over empty row
+					continue
+				d = tuple((row['Date'], row['Winner'], row['Time'], row['IsTitle?'], row['DecisionType']))
+				if d not in done:
+					result.append(row)
+					done.add(d)
+
+			# sort list by date
+			result = sorted(result, key = lambda x : x['Date'])
+
+			self.write_to_excel(result)
+			self.write_match_history(result, is_sum = True, write_to_db = True)
+
 			rmtree(self.tmp_dir)
+
+			print(f'{len(result)} matches are registered!')
 
 	def write_match_history(self, rows, is_sum = False, write_to_db = False, db_name = 'match_history.db'):
 		""" write match history to a database
