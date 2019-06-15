@@ -621,86 +621,90 @@ class UFCHistoryDB:
 				sql_result = cursor.execute(sql, val).fetchone()
 				if sql_result is not None and len(sql_result) > 0:
 
-					dictionary['F1SDBL'] = sql_result[0].split('/')[0] if '/' in sql_result[0] else ''
-					dictionary['F1SDBA'] = sql_result[0].split('/')[1] if '/' in sql_result[0] else ''
-					dictionary['F1SDHL'] = sql_result[1].split('/')[0] if '/' in sql_result[1] else ''
-					dictionary['F1SDHA'] = sql_result[1].split('/')[1] if '/' in sql_result[1] else ''
-					dictionary['F1SDLL'] = sql_result[2].split('/')[0] if '/' in sql_result[2] else ''
-					dictionary['F1SDLA'] = sql_result[2].split('/')[1] if '/' in sql_result[2] else ''
-					dictionary['F1TSL'] = sql_result[3]
-					dictionary['F1TSA'] = sql_result[4]
-					dictionary['F1SSL'] = sql_result[5]
-					dictionary['F1SSA'] = sql_result[6]
-					dictionary['F1SA'] = sql_result[7]
-					dictionary['F1KD'] = sql_result[8]
+					dictionary['F1SDBL'] = int(sql_result[0].split('/')[0]) if '/' in sql_result[0] else 0
+					dictionary['F1SDBA'] = int(sql_result[0].split('/')[1]) if '/' in sql_result[0] else 0
+					dictionary['F1SDHL'] = int(sql_result[1].split('/')[0]) if '/' in sql_result[1] else 0
+					dictionary['F1SDHA'] = int(sql_result[1].split('/')[1]) if '/' in sql_result[1] else 0
+					dictionary['F1SDLL'] = int(sql_result[2].split('/')[0]) if '/' in sql_result[2] else 0
+					dictionary['F1SDLA'] = int(sql_result[2].split('/')[1]) if '/' in sql_result[2] else 0
+					dictionary['F1TSL'] = UFCHistoryDB.atoi(sql_result[3])
+					dictionary['F1TSA'] = UFCHistoryDB.atoi(sql_result[4])
+					dictionary['F1SSL'] = UFCHistoryDB.atoi(sql_result[5])
+					dictionary['F1SSA'] = UFCHistoryDB.atoi(sql_result[6])
+					dictionary['F1SA'] = UFCHistoryDB.atoi(sql_result[7])
+					dictionary['F1KD'] = UFCHistoryDB.atoi(sql_result[8])
 
-					dictionary['F1SCBL'] = sql_result[9]
-					dictionary['F1SCBA'] = sql_result[10]
-					dictionary['F1SCHL'] = sql_result[11]
-					dictionary['F1SCHA'] = sql_result[12]
-					dictionary['F1SCLL'] = sql_result[13]
-					dictionary['F1SCLA'] = sql_result[14]
-					dictionary['F1RV'] = sql_result[15]
-					dictionary['F1SR'] = sql_result[16]
-					dictionary['F1TDL'] = sql_result[17]
-					dictionary['F1TDA'] = sql_result[18]
-					dictionary['F1TDS'] = sql_result[19]
+					dictionary['F1SCBL'] = UFCHistoryDB.atoi(sql_result[9])
+					dictionary['F1SCBA'] = UFCHistoryDB.atoi(sql_result[10])
+					dictionary['F1SCHL'] = UFCHistoryDB.atoi(sql_result[11])
+					dictionary['F1SCHA'] = UFCHistoryDB.atoi(sql_result[12])
+					dictionary['F1SCLL'] = UFCHistoryDB.atoi(sql_result[13])
+					dictionary['F1SCLA'] = UFCHistoryDB.atoi(sql_result[14])
+					dictionary['F1RV'] = UFCHistoryDB.atoi(sql_result[15])
+					dictionary['F1SR'] = UFCHistoryDB.atoi(sql_result[16])
+					dictionary['F1TDL'] = UFCHistoryDB.atoi(sql_result[17])
+					dictionary['F1TDA'] = UFCHistoryDB.atoi(sql_result[18])
+					dictionary['F1TDS'] = UFCHistoryDB.atoi(sql_result[19])
 
-					dictionary['F1SGBL'] = sql_result[20]
-					dictionary['F1SGBA'] = sql_result[21]
-					dictionary['F1SGHL'] = sql_result[22]
-					dictionary['F1SGHA'] = sql_result[23]
-					dictionary['F1SGLL'] = sql_result[24]
-					dictionary['F1SGLA'] = sql_result[25]
-					dictionary['F1AD'] = sql_result[26]
-					dictionary['F1ADTB'] = sql_result[27]
-					dictionary['F1ADHG'] = sql_result[28]
-					dictionary['F1ADTM'] = sql_result[29]
-					dictionary['F1ADTS'] = sql_result[30]
-					dictionary['F1SM'] = sql_result[31]
+					dictionary['F1SGBL'] = UFCHistoryDB.atoi(sql_result[20])
+					dictionary['F1SGBA'] = UFCHistoryDB.atoi(sql_result[21])
+					dictionary['F1SGHL'] = UFCHistoryDB.atoi(sql_result[22])
+					dictionary['F1SGHA'] = UFCHistoryDB.atoi(sql_result[23])
+					dictionary['F1SGLL'] = UFCHistoryDB.atoi(sql_result[24])
+					dictionary['F1SGLA'] = UFCHistoryDB.atoi(sql_result[25])
+					dictionary['F1AD'] = UFCHistoryDB.atoi(sql_result[26])
+					dictionary['F1ADTB'] = UFCHistoryDB.atoi(sql_result[27])
+					dictionary['F1ADHG'] = UFCHistoryDB.atoi(sql_result[28])
+					dictionary['F1ADTM'] = UFCHistoryDB.atoi(sql_result[29])
+					dictionary['F1ADTS'] = UFCHistoryDB.atoi(sql_result[30])
+					dictionary['F1SM'] = UFCHistoryDB.atoi(sql_result[31])
+
+					# if int(dictionary['F1Id']) == 12118:
+					# 	print(dictionary['Date'], dictionary['F1Id'], dictionary['F1Name'], dictionary['F1SDBL'], dictionary['F1SDBA'])
+					# 	print()
 			except Exception as e:
 				print(f'Error(DB.get_rows_for_schema): {str(e)}')
 				print("Cannot get statistics information due to above error.")
 
 			# fill up missing entries with empty string
 			if 'F1SDBL' not in dictionary:
-				dictionary['F1SDBL'] = ''
-				dictionary['F1SDBA'] = ''
-				dictionary['F1SDHL'] = ''
-				dictionary['F1SDHA'] = ''
-				dictionary['F1SDLL'] = ''
-				dictionary['F1SDLA'] = ''
-				dictionary['F1TSL'] = ''
-				dictionary['F1TSA'] = ''
-				dictionary['F1SSL'] = ''
-				dictionary['F1SSA'] = ''
-				dictionary['F1SA'] = ''
-				dictionary['F1KD'] = ''
+				dictionary['F1SDBL'] = 0
+				dictionary['F1SDBA'] = 0
+				dictionary['F1SDHL'] = 0
+				dictionary['F1SDHA'] = 0
+				dictionary['F1SDLL'] = 0
+				dictionary['F1SDLA'] = 0
+				dictionary['F1TSL'] = 0
+				dictionary['F1TSA'] = 0
+				dictionary['F1SSL'] = 0
+				dictionary['F1SSA'] = 0
+				dictionary['F1SA'] = 0
+				dictionary['F1KD'] = 0
 
-				dictionary['F1SCBL'] = ''
-				dictionary['F1SCBA'] = ''
-				dictionary['F1SCHL'] = ''
-				dictionary['F1SCHA'] = ''
-				dictionary['F1SCLL'] = ''
-				dictionary['F1SCLA'] = ''
-				dictionary['F1RV'] = ''
-				dictionary['F1SR'] = ''
-				dictionary['F1TDL'] = ''
-				dictionary['F1TDA'] = ''
-				dictionary['F1TDS'] = ''
+				dictionary['F1SCBL'] = 0
+				dictionary['F1SCBA'] = 0
+				dictionary['F1SCHL'] = 0
+				dictionary['F1SCHA'] = 0
+				dictionary['F1SCLL'] = 0
+				dictionary['F1SCLA'] = 0
+				dictionary['F1RV'] = 0
+				dictionary['F1SR'] = 0
+				dictionary['F1TDL'] = 0
+				dictionary['F1TDA'] = 0
+				dictionary['F1TDS'] = 0
 
-				dictionary['F1SGBL'] = ''
-				dictionary['F1SGBA'] = ''
-				dictionary['F1SGHL'] = ''
-				dictionary['F1SGHA'] = ''
-				dictionary['F1SGLL'] = ''
-				dictionary['F1SGLA'] = ''
-				dictionary['F1AD'] = ''
-				dictionary['F1ADTB'] = ''
-				dictionary['F1ADHG'] = ''
-				dictionary['F1ADTM'] = ''
-				dictionary['F1ADTS'] = ''
-				dictionary['F1SM'] = ''
+				dictionary['F1SGBL'] = 0
+				dictionary['F1SGBA'] = 0
+				dictionary['F1SGHL'] = 0
+				dictionary['F1SGHA'] = 0
+				dictionary['F1SGLL'] = 0
+				dictionary['F1SGLA'] = 0
+				dictionary['F1AD'] = 0
+				dictionary['F1ADTB'] = 0
+				dictionary['F1ADHG'] = 0
+				dictionary['F1ADTM'] = 0
+				dictionary['F1ADTS'] = 0
+				dictionary['F1SM'] = 0
 
 			# Fighter 2 General Information
 			
@@ -742,97 +746,88 @@ class UFCHistoryDB:
 			try:
 				sql_result = cursor.execute(sql, val).fetchone()
 				if sql_result is not None and len(sql_result) > 0:
-					dictionary['F2SDBL'] = sql_result[0].split('/')[0] if '/' in sql_result[0] else ''
-					dictionary['F2SDBA'] = sql_result[0].split('/')[1] if '/' in sql_result[0] else ''
-					dictionary['F2SDHL'] = sql_result[1].split('/')[0] if '/' in sql_result[1] else ''
-					dictionary['F2SDHA'] = sql_result[1].split('/')[1] if '/' in sql_result[1] else ''
-					dictionary['F2SDLL'] = sql_result[2].split('/')[0] if '/' in sql_result[2] else ''
-					dictionary['F2SDLA'] = sql_result[2].split('/')[1] if '/' in sql_result[2] else ''
-					dictionary['F2TSL'] = sql_result[3]
-					dictionary['F2TSA'] = sql_result[4]
-					dictionary['F2SSL'] = sql_result[5]
-					dictionary['F2SSA'] = sql_result[6]
-					dictionary['F2SA'] = sql_result[7]
-					dictionary['F2KD'] = sql_result[8]
+					dictionary['F2SDBL'] = int(sql_result[0].split('/')[0]) if '/' in sql_result[0] else 0
+					dictionary['F2SDBA'] = int(sql_result[0].split('/')[1]) if '/' in sql_result[0] else 0
+					dictionary['F2SDHL'] = int(sql_result[1].split('/')[0]) if '/' in sql_result[1] else 0
+					dictionary['F2SDHA'] = int(sql_result[1].split('/')[1]) if '/' in sql_result[1] else 0
+					dictionary['F2SDLL'] = int(sql_result[2].split('/')[0]) if '/' in sql_result[2] else 0
+					dictionary['F2SDLA'] = int(sql_result[2].split('/')[1]) if '/' in sql_result[2] else 0
+					dictionary['F2TSL'] = UFCHistoryDB.atoi(sql_result[3])
+					dictionary['F2TSA'] = UFCHistoryDB.atoi(sql_result[4])
+					dictionary['F2SSL'] = UFCHistoryDB.atoi(sql_result[5])
+					dictionary['F2SSA'] = UFCHistoryDB.atoi(sql_result[6])
+					dictionary['F2SA'] = UFCHistoryDB.atoi(sql_result[7])
+					dictionary['F2KD'] = UFCHistoryDB.atoi(sql_result[8])
 
-					dictionary['F2SCBL'] = sql_result[9]
-					dictionary['F2SCBA'] = sql_result[10]
-					dictionary['F2SCHL'] = sql_result[11]
-					dictionary['F2SCHA'] = sql_result[12]
-					dictionary['F2SCLL'] = sql_result[13]
-					dictionary['F2SCLA'] = sql_result[14]
-					dictionary['F2RV'] = sql_result[15]
-					dictionary['F2SR'] = sql_result[16]
-					dictionary['F2TDL'] = sql_result[17]
-					dictionary['F2TDA'] = sql_result[18]
-					dictionary['F2TDS'] = sql_result[19]
+					dictionary['F2SCBL'] = UFCHistoryDB.atoi(sql_result[9])
+					dictionary['F2SCBA'] = UFCHistoryDB.atoi(sql_result[10])
+					dictionary['F2SCHL'] = UFCHistoryDB.atoi(sql_result[11])
+					dictionary['F2SCHA'] = UFCHistoryDB.atoi(sql_result[12])
+					dictionary['F2SCLL'] = UFCHistoryDB.atoi(sql_result[13])
+					dictionary['F2SCLA'] = UFCHistoryDB.atoi(sql_result[14])
+					dictionary['F2RV'] = UFCHistoryDB.atoi(sql_result[15])
+					dictionary['F2SR'] = UFCHistoryDB.atoi(sql_result[16])
+					dictionary['F2TDL'] = UFCHistoryDB.atoi(sql_result[17])
+					dictionary['F2TDA'] = UFCHistoryDB.atoi(sql_result[18])
+					dictionary['F2TDS'] = UFCHistoryDB.atoi(sql_result[19])
 
-					dictionary['F2SGBL'] = sql_result[20]
-					dictionary['F2SGBA'] = sql_result[21]
-					dictionary['F2SGHL'] = sql_result[22]
-					dictionary['F2SGHA'] = sql_result[23]
-					dictionary['F2SGLL'] = sql_result[24]
-					dictionary['F2SGLA'] = sql_result[25]
-					dictionary['F2AD'] = sql_result[26]
-					dictionary['F2ADTB'] = sql_result[27]
-					dictionary['F2ADHG'] = sql_result[28]
-					dictionary['F2ADTM'] = sql_result[29]
-					dictionary['F2ADTS'] = sql_result[30]
-					dictionary['F2SM'] = sql_result[31]
+					dictionary['F2SGBL'] = UFCHistoryDB.atoi(sql_result[20])
+					dictionary['F2SGBA'] = UFCHistoryDB.atoi(sql_result[21])
+					dictionary['F2SGHL'] = UFCHistoryDB.atoi(sql_result[22])
+					dictionary['F2SGHA'] = UFCHistoryDB.atoi(sql_result[23])
+					dictionary['F2SGLL'] = UFCHistoryDB.atoi(sql_result[24])
+					dictionary['F2SGLA'] = UFCHistoryDB.atoi(sql_result[25])
+					dictionary['F2AD'] = UFCHistoryDB.atoi(sql_result[26])
+					dictionary['F2ADTB'] = UFCHistoryDB.atoi(sql_result[27])
+					dictionary['F2ADHG'] = UFCHistoryDB.atoi(sql_result[28])
+					dictionary['F2ADTM'] = UFCHistoryDB.atoi(sql_result[29])
+					dictionary['F2ADTS'] = UFCHistoryDB.atoi(sql_result[30])
+					dictionary['F2SM'] = UFCHistoryDB.atoi(sql_result[31])
 			except Exception as e:
 				print(f'Error(DB.get_rows_for_schema): {str(e)}')
 				print("Cannot get Statistics information due to above error(F2).")
 
 			# fill up missing entries with empty string
 			if 'F2SDBL' not in dictionary:
-				dictionary['F2SDBL'] = ''
-				dictionary['F2SDBA'] = ''
-				dictionary['F2SDHL'] = ''
-				dictionary['F2SDHA'] = ''
-				dictionary['F2SDLL'] = ''
-				dictionary['F2SDLA'] = ''
-				dictionary['F2TSL'] = ''
-				dictionary['F2TSA'] = ''
-				dictionary['F2SSL'] = ''
-				dictionary['F2SSA'] = ''
-				dictionary['F2SA'] = ''
-				dictionary['F2KD'] = ''
+				dictionary['F2SDBL'] = 0
+				dictionary['F2SDBA'] = 0
+				dictionary['F2SDHL'] = 0
+				dictionary['F2SDHA'] = 0
+				dictionary['F2SDLL'] = 0
+				dictionary['F2SDLA'] = 0
+				dictionary['F2TSL'] = 0
+				dictionary['F2TSA'] = 0
+				dictionary['F2SSL'] = 0
+				dictionary['F2SSA'] = 0
+				dictionary['F2SA'] = 0
+				dictionary['F2KD'] = 0
 
-				dictionary['F2SCBL'] = ''
-				dictionary['F2SCBA'] = ''
-				dictionary['F2SCHL'] = ''
-				dictionary['F2SCHA'] = ''
-				dictionary['F2SCLL'] = ''
-				dictionary['F2SCLA'] = ''
-				dictionary['F2RV'] = ''
-				dictionary['F2SR'] = ''
-				dictionary['F2TDL'] = ''
-				dictionary['F2TDA'] = ''
-				dictionary['F2TDS'] = ''
+				dictionary['F2SCBL'] = 0
+				dictionary['F2SCBA'] = 0
+				dictionary['F2SCHL'] = 0
+				dictionary['F2SCHA'] = 0
+				dictionary['F2SCLL'] = 0
+				dictionary['F2SCLA'] = 0
+				dictionary['F2RV'] = 0
+				dictionary['F2SR'] = 0
+				dictionary['F2TDL'] = 0
+				dictionary['F2TDA'] = 0
+				dictionary['F2TDS'] = 0
 
-				dictionary['F2SGBL'] = ''
-				dictionary['F2SGBA'] = ''
-				dictionary['F2SGHL'] = ''
-				dictionary['F2SGHA'] = ''
-				dictionary['F2SGLL'] = ''
-				dictionary['F2SGLA'] = ''
-				dictionary['F2AD'] = ''
-				dictionary['F2ADTB'] = ''
-				dictionary['F2ADHG'] = ''
-				dictionary['F2ADTM'] = ''
-				dictionary['F2ADTS'] = ''
-				dictionary['F2SM'] = ''
+				dictionary['F2SGBL'] = 0
+				dictionary['F2SGBA'] = 0
+				dictionary['F2SGHL'] = 0
+				dictionary['F2SGHA'] = 0
+				dictionary['F2SGLL'] = 0
+				dictionary['F2SGLA'] = 0
+				dictionary['F2AD'] = 0
+				dictionary['F2ADTB'] = 0
+				dictionary['F2ADHG'] = 0
+				dictionary['F2ADTM'] = 0
+				dictionary['F2ADTS'] = 0
+				dictionary['F2SM'] = 0
 
-			# check if duplicates exist
-			duplicate_list = [r for r in self.rows_for_schema if 'Date' in r and r['Date'] == dictionary['Date'] and r['Winner'] == dictionary['Winner'] 
-									and r['Time'] == dictionary['Time'] and r['IsTitle?'] == dictionary['IsTitle?'] and r['DecisionType'] == dictionary['DecisionType']]
-
-			# the dictionary is filled up, let's add it into the list
-			# if duplicated, append empty dict
-			if len(duplicate_list) == 0:
-				self.rows_for_schema.append(dictionary)
-			else:
-				self.rows_for_schema.append({})
+			self.rows_for_schema.append(dictionary)
 			
 			self.get_rows_bar.update(len(self.rows_for_schema))
 
