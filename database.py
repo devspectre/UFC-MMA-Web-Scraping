@@ -8,6 +8,7 @@ from shutil import copyfile
 from shutil import rmtree
 from excel import ExcelWriter
 from datetime import datetime as DT
+from collections import Counter
 
 class UFCHistoryDB:
 	""" manages sqlite database
@@ -871,7 +872,7 @@ class UFCHistoryDB:
 		rows_ = []
 
 		if is_sum:
-			tmp_list = rows
+			tmp_list = rows.copy()
 
 			print('Doing the sum on statistics...')
 
