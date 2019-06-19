@@ -4,6 +4,7 @@ import os
 import sys
 import threading
 import progressbar
+import pickle
 from shutil import copyfile
 from shutil import rmtree
 from excel import ExcelWriter
@@ -536,6 +537,8 @@ class UFCHistoryDB:
 
 		print('Writing to excel is completed!')
 
+		return row_index
+
 	@staticmethod
 	def atoi(a):
 		""" convert string to int
@@ -854,12 +857,19 @@ class UFCHistoryDB:
 			# sort list by date
 			result = sorted(result, key = lambda x : x['Date'])
 
-			self.write_to_excel(result)
-			self.write_match_history(result, is_sum = True, write_to_db = True)
+			# self.write_to_excel(result)
+			self.write_match_history(result, is_sum = True, write_to_db = False)
+			UFCHistoryDB.write_pickle_file(result)
 
 			rmtree(self.tmp_dir)
 
 			print(f'{len(result)} matches are registered!')
+
+			# code for test to see if pickling and unpickling work fine
+			# unpickled_data = UFCHistoryDB.read_pickle_file()
+			# for row in unpickled_data:
+			# 	print(row)
+			# 	print()
 
 	def write_match_history(self, rows, is_sum = False, write_to_db = False, db_name = 'match_history.db'):
 		""" write match history to a database
@@ -1144,6 +1154,61 @@ class UFCHistoryDB:
 			cursor.execute('COMMIT')
 		print('Writing match history done!')
 
+	@staticmethod
+	def write_pickle_file(rows, file_name = 'match_history_sum'):
+		""" write given data(rows) to the file(file_name)
+		param rows: source data
+		param file_name: name of pickle file
+		return: True if successful, otherwise False
+		"""
+
+		outfile = None
+
+		try:
+			outfile= open(file_name, 'wb') # open the file in write and binary mode to write in form of byte objects
+		except Exception as e:
+			print(f'Failed to write pickle file. Cannot open the file {file_name}. {str(e)}')
+			return False
+		
+		try:
+			pickle.dump(rows, outfile) # dump data to the pickle file
+		except Exception as e:
+			print(f'Failed to dump data to pickle file. {str(e)}')
+			outfile.close() # do not forget to close opened file
+			return False
+
+		outfile.close() # close the file to complete writing
+		return True
+
+	@staticmethod
+	def read_pickle_file(file_name = 'match_history_sum'):
+		""" read pickle file and retrieve data
+		param file_name: name of pickle file
+		return: list of data
+		"""
+
+		infile = None # file handle
+
+		try:
+			infile = open(file_name, 'rb') # read file in read and binary mode
+		except Exception as e: # NOTE: Check whether the retrieved data is empty or not for this exception in caller of this method
+			print(f'Failed to read pickle file. Cannot open the file {file_name}. {str(e)}')
+			return None
+
+		data_list = [] # list of data to be returned
+
+		try:
+			data_list = pickle.load(infile) # retrieve data from pickled file
+		except Exception as e:
+			print(f'Failed to retrieve data from pickled file. {str(e)}')
+			return None
+		
+		infile.close() # close the file
+
+		print(f'Retrieved {len(data_list)} rows from pickled file.') # log
+
+		return data_list
+
 	def get_sum_up_to_point(self, db_name = 'match_history.db'):
 		""" get sum of each value of statistics up to the point
 		param rows: 
@@ -1151,7 +1216,7 @@ class UFCHistoryDB:
 
 
 	def get_rows_for_schema(self):
-		""" get all rows to be written onto the excel file
+		""" get all rows to be written to the excel file
 		param:
 		return:
 		"""
@@ -1181,7 +1246,7 @@ class UFCHistoryDB:
 			return
 
 		# this is used to check if all threads are finished
-		# self.total_row_count = len(rows)
+		self.total_row_count = len(rows)
 
 		# shows the progress of total processing
 		self.get_rows_bar = progressbar.ProgressBar(maxval=len(rows), \
