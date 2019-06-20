@@ -903,7 +903,7 @@ class UFCHistoryDB:
 
 			index = 0
 
-			for row in tmp_list: # iterate over the list
+			for index, row in enumerate(tmp_list): # iterate over the list
 				if row is None or len(row) == 0:
 					# update progress bar and skip over
 					index += 1
@@ -913,7 +913,7 @@ class UFCHistoryDB:
 				try:
 
 					result = Counter()
-					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+					for d in [r for r in rows[:index + 1] if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) ]: # and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())
 						for key, value in d.items():
 							if key.startswith('F1') and not (key.startswith('F1Id') or key.startswith('F1Name') or key.startswith('F1Age') or key.startswith('F1Height') or key.startswith('F1Reach')):
 								result[key] += value
@@ -921,7 +921,7 @@ class UFCHistoryDB:
 								result[key] = value
 
 					# iterate over matching rows and get sum of each statistic value for figter 2
-					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]:
+					for d in [r for r in rows[:index + 1] if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) ]: # and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())
 						for key, value in d.items():
 							if key.startswith('F2') and not (key.startswith('F12Id') or key.startswith('F2Name') or key.startswith('F2Age') or key.startswith('F2Height') or key.startswith('F2Reach')):
 								result[key] += value
@@ -1188,6 +1188,8 @@ class UFCHistoryDB:
 			return False
 
 		outfile.close() # close the file to complete writing
+
+		print(f'Pickling is done. {file_name}')
 		return True
 
 	@staticmethod
@@ -1264,7 +1266,7 @@ class UFCHistoryDB:
 
 		# self.total_row_count = 1000
 		# self.get_rows_bar = progressbar.ProgressBar(maxval=1000, \
-		# 							widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', '1000'])
+									# widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', '1000'])
 
 		self.get_rows_bar.start()
 
