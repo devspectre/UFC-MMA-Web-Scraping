@@ -65,7 +65,7 @@ class UFCHistoryDB:
 		# count of threads
 		self.thread_count = 20
 
-		# thread_counter
+		# thread_counter, it is increased by 1 when a 
 		self.thread_counter = 0
 
 		# path to temp dir for multithreading
@@ -1181,6 +1181,7 @@ class UFCHistoryDB:
 			return False
 		
 		try:
+			print('Writing data to pickle file...')
 			pickle.dump(rows, outfile) # dump data to the pickle file
 		except Exception as e:
 			print(f'Failed to dump data to pickle file. {str(e)}')
@@ -1189,7 +1190,7 @@ class UFCHistoryDB:
 
 		outfile.close() # close the file to complete writing
 
-		print(f'Pickling is done. {file_name}')
+		print(f'Writing data to pickle file is done. File: {file_name}')
 		return True
 
 	@staticmethod
@@ -1210,6 +1211,7 @@ class UFCHistoryDB:
 		data_list = [] # list of data to be returned
 
 		try:
+			print('Reading data from pickled file...')
 			data_list = pickle.load(infile) # retrieve data from pickled file
 		except Exception as e:
 			print(f'Failed to retrieve data from pickled file. {str(e)}')
