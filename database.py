@@ -65,6 +65,9 @@ class UFCHistoryDB:
 		# count of threads
 		self.thread_count = 20
 
+		# thread_counter
+		self.thread_counter = 0
+
 		# path to temp dir for multithreading
 		self.tmp_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'temp')
 
@@ -580,6 +583,8 @@ class UFCHistoryDB:
 		for row in rows:
 
 			if row is None or len(row) == 0:
+				self.rows_for_schema.append({})
+				self.get_rows_bar.update(len(self.rows_for_schema))
 				continue
 
 			# dictionary to contain match information
@@ -839,9 +844,14 @@ class UFCHistoryDB:
 
 		conn_.close()
 
+		self.thread_counter += 1
+
 		# check whether all threads are finished and then write to excel
 		# remove temp files and folder
-		if len(self.rows_for_schema) >= self.total_row_count:
+		if self.thread_counter >= self.thread_count:
+			self.get_rows_bar.update(self.total_row_count)
+			self.get_rows_bar.finish()
+			print('All threads are finished!')
 
 			# get rid of duplicates
 			done = set()
