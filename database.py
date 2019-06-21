@@ -417,7 +417,7 @@ class UFCHistoryDB:
 		row_index = 4
 
 		xw_bar = progressbar.ProgressBar(maxval=len(rows), \
-										widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
+										widgets=['EXCEL:', progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
 		xw_bar.start()
 
 		print('Writing to excel...')
@@ -848,6 +848,7 @@ class UFCHistoryDB:
 
 		# check whether all threads are finished and then write to excel
 		# remove temp files and folder
+
 		if self.thread_counter >= self.thread_count:
 			self.get_rows_bar.update(self.total_row_count)
 			self.get_rows_bar.finish()
@@ -865,13 +866,24 @@ class UFCHistoryDB:
 					done.add(d)
 
 			# sort list by date
-			result = sorted(result, key = lambda x : x['Date'])
+			result = sorted(result, key = lambda x : (x['Date'], x['Winner'], x['IsTitle?']))
 
-			# self.write_to_excel(result)
+			try:
+				self.write_to_excel(result)
+			except Exception as e:
+				print(f'Failed to write to excel due to error: {str(e)}')
+			
 			self.write_match_history(result, is_sum = True, write_to_db = False)
-			UFCHistoryDB.write_pickle_file(result)
 
-			rmtree(self.tmp_dir)
+			try:
+				UFCHistoryDB.write_pickle_file(result)
+			except Exception as e:
+				print(f'Failed to write pickle file due to error: {str(e)}')
+
+			try:
+				rmtree(self.tmp_dir)
+			except Exception as e:
+				pass
 
 			print(f'{len(result)} matches are registered!')
 
@@ -897,9 +909,12 @@ class UFCHistoryDB:
 			print('Doing the sum on statistics...')
 
 			sum_bar = progressbar.ProgressBar(maxval=len(tmp_list), \
-									widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(tmp_list))])
+									widgets=['SUM:', progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(tmp_list))])
 
 			sum_bar.start()
+
+			royce_list = []
+			royce_sum = []
 
 			index = 0
 
@@ -913,20 +928,18 @@ class UFCHistoryDB:
 				try:
 
 					result = Counter()
-					for d in [r for r in rows[:index + 1] if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) ]: # and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())
+					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]: # 
 						for key, value in d.items():
-							if key.startswith('F1') and not (key.startswith('F1Id') or key.startswith('F1Name') or key.startswith('F1Age') or key.startswith('F1Height') or key.startswith('F1Reach')):
+							if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
 								result[key] += value
 							else:
 								result[key] = value
 
 					# iterate over matching rows and get sum of each statistic value for figter 2
-					for d in [r for r in rows[:index + 1] if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) ]: # and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())
-						for key, value in d.items():
-							if key.startswith('F2') and not (key.startswith('F12Id') or key.startswith('F2Name') or key.startswith('F2Age') or key.startswith('F2Height') or key.startswith('F2Reach')):
-								result[key] += value
-							else:
-								result[key] = value
+					# for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]: # 
+					# 	for key, value in d.items():
+					# 		if key.startswith('F2') and not (key.startswith('F12Id') or key.startswith('F2Name') or key.startswith('F2Age') or key.startswith('F2Height') or key.startswith('F2Reach')):
+					# 			result[key] += value
 						# row['F2SDBL'] = row['F2SDBL'] + d['F2SDBL']
 						# row['F2SDBA'] = row['F2SDBA'] + d['F2SDBA']
 						# row['F2SDHL'] = row['F2SDHL'] + d['F2SDHL']
@@ -969,6 +982,10 @@ class UFCHistoryDB:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
 					continue
 
+				if row['F1Id'] == 8011 or row['F2Id'] == 8011:
+					royce_list.append(row)
+					royce_sum.append(result)
+
 				rows_.append(result)
 				# update progress bar
 				index += 1
@@ -982,7 +999,9 @@ class UFCHistoryDB:
 
 		# write sumed rows to excel
 		try:
-			self.write_to_excel(rows_, 'ufc_history_sum')
+			# self.write_to_excel(rows_, 'ufc_history_sum')
+			self.write_to_excel(royce_list, 'royce_history')
+			self.write_to_excel(royce_sum, 'royce_sum')
 		except Exception as e:
 			print(f'Failed to write excel file: {str(e)}')
 		
@@ -1264,7 +1283,7 @@ class UFCHistoryDB:
 
 		# shows the progress of total processing
 		self.get_rows_bar = progressbar.ProgressBar(maxval=len(rows), \
-									widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
+									widgets=['QUERYING DB:', progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
 
 		# self.total_row_count = 1000
 		# self.get_rows_bar = progressbar.ProgressBar(maxval=1000, \
