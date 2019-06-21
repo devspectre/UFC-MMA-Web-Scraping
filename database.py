@@ -1273,8 +1273,11 @@ class UFCHistoryDB:
 		self.get_rows_bar.start()
 
 		# devide the rows into smaller pieces to load them on threads
-		tmp_list = [rows[x:x + int(len(rows) / self.thread_count)] for x in range(0, len(rows) - 1, int(len(rows) / self.thread_count))]
+		tmp_list = [rows[x:x + int(len(rows) / (self.thread_count - 1))] for x in range(0, len(rows) - 1, int(len(rows) / (self.thread_count - 1)))]
 		# tmp_list = [rows[x:x + int(1000 / self.thread_count)] for x in range(0, 999, int(1000 / self.thread_count))]
+
+		# ensure thread_count equals to the number of sub lists in tmp_list
+		self.thread_count = len(tmp_list)
 
 		# ensure the temp directory does exist
 		if not os.path.exists(self.tmp_dir):
