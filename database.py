@@ -860,10 +860,10 @@ class UFCHistoryDB:
 			for row in self.rows_for_schema:
 				if 'Date' not in row: # skip over empty row
 					continue
-				d = tuple((row['Date'], row['Winner'], row['Time'], row['IsTitle?'], row['DecisionType']))
+				d = tuple((row['Date'], row['Winner']))
 				if d not in done:
-					result.append(row)
 					done.add(d)
+					result.append(row)
 
 			# sort list by date
 			result = sorted(result, key = lambda x : (x['Date'], x['Winner'], x['IsTitle?']))
@@ -873,7 +873,7 @@ class UFCHistoryDB:
 			except Exception as e:
 				print(f'Failed to write to excel due to error: {str(e)}')
 			
-			self.write_match_history(result, is_sum = True, write_to_db = False)
+			self.write_match_history(result, is_sum = True, write_to_db = True)
 
 			try:
 				UFCHistoryDB.write_pickle_file(result)
@@ -904,12 +904,11 @@ class UFCHistoryDB:
 		rows_ = []
 
 		if is_sum:
-			tmp_list = rows.copy()
 
 			print('Doing the sum on statistics...')
 
-			sum_bar = progressbar.ProgressBar(maxval=len(tmp_list), \
-									widgets=['SUM:', progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(tmp_list))])
+			sum_bar = progressbar.ProgressBar(maxval=len(rows), \
+									widgets=['SUM:', progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage(), ' | ', progressbar.Counter(), '/', str(len(rows))])
 
 			sum_bar.start()
 
@@ -918,7 +917,7 @@ class UFCHistoryDB:
 
 			index = 0
 
-			for index, row in enumerate(tmp_list): # iterate over the list
+			for index, row in enumerate(rows): # iterate over the list
 				if row is None or len(row) == 0:
 					# update progress bar and skip over
 					index += 1
@@ -928,18 +927,46 @@ class UFCHistoryDB:
 				try:
 
 					result = Counter()
-					for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id'] or r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]: # 
-						for key, value in d.items():
-							if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
-								result[key] += value
-							else:
-								result[key] = value
+					# get sum of fighter 1 statistics for all corresponding f1 statistics
+					try:
+						for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F1Id']
+							for key, value in d.items():
+								if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
+									result[key] += value
+								else:
+									result[key] = value
+					except Exception as e:
+						print(f'Exception while doing sum.Fighter1: {str(e)}')
+					
+					# get sum of fighter 1 statistics for all corresponding f2 statistics
+					try:
+						for d in [r for r in rows if ('F1Id' in r) and (r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F1Id']
+							for key, value in d.items():
+								if key.startswith('F2') and key != 'F2Id' and key != 'F2Name' and key != 'F2Age' and key != 'F2Height' and key != 'F2Reach':
+									result[key.replace('F2', 'F1')] += value
+					except Exception as e:
+						print(f'Exception while doing sum.Fighter2: {str(e)}')
+					
 
-					# iterate over matching rows and get sum of each statistic value for figter 2
-					# for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F2Id'] or r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() <= DT.strptime(row['Date'], '%Y-%m-%d').date())]: # 
+					# # get sum of fighter 2 statistics for all corresponding f1 statistics
+					# for d in [r for r in rows if ('F2Id' in r) and (r['F1Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F2Id']
 					# 	for key, value in d.items():
-					# 		if key.startswith('F2') and not (key.startswith('F12Id') or key.startswith('F2Name') or key.startswith('F2Age') or key.startswith('F2Height') or key.startswith('F2Reach')):
+					# 		if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
+					# 			result[key.replace('F1', 'F2')] += value
+
+					# # # get sum of fighter 2 statistics for all corresponding f2 statistics
+					# for d in [r for r in rows if ('F2Id' in r) and (r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F2Id']
+					# 	for key, value in d.items():
+					# 		if key.startswith('F2') and key != 'F2Id' and key != 'F2Name' and key != 'F2Age' and key != 'F2Height' and key != 'F2Reach':
 					# 			result[key] += value
+
+					for key, value in row.items():
+						if (key.startswith('F1') or key.startswith('F2')) and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+							result[key] += value
+						else:
+							result[key] = value
+
+
 						# row['F2SDBL'] = row['F2SDBL'] + d['F2SDBL']
 						# row['F2SDBA'] = row['F2SDBA'] + d['F2SDBA']
 						# row['F2SDHL'] = row['F2SDHL'] + d['F2SDHL']
@@ -999,7 +1026,7 @@ class UFCHistoryDB:
 
 		# write sumed rows to excel
 		try:
-			# self.write_to_excel(rows_, 'ufc_history_sum')
+			self.write_to_excel(rows_, 'ufc_history_sum')
 			self.write_to_excel(royce_list, 'royce_history')
 			self.write_to_excel(royce_sum, 'royce_sum')
 		except Exception as e:
