@@ -926,10 +926,10 @@ class UFCHistoryDB:
 
 				try:
 
-					result = None
+					result = {}
 					
 					is_fighter1_done = False
-					is_fifhger2_done = False
+					is_fighter2_done = False
 
 					# seek for the last matching match history of both fighters(fighter1 and fighter2) in reversed order
 					# make sure that the source list is already sorted by date
@@ -942,14 +942,14 @@ class UFCHistoryDB:
 
 								is_fighter1_done = True
 
-							if r['F2Id'] == row['F1id']:
+							if r['F2Id'] == row['F1Id']:
 								for key, value in r.items():
 									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key.replace('F2', 'F1')] = value	
 
 								is_fighter1_done = True
 
-						if not is_fifhger2_done: # need to seek for fighter 2's last history
+						if not is_fighter2_done: # need to seek for fighter 2's last history
 							if r['F1Id'] == row['F2Id']:
 								for key, value in r.items():
 									if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
@@ -957,24 +957,45 @@ class UFCHistoryDB:
 
 								is_fighter2_done = True
 
-							if r['F2Id'] == row['F2id']:
+							if r['F2Id'] == row['F2Id']:
 								for key, value in r.items():
 									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key] = value
 
 								is_fighter2_done = True
 
+						if is_fighter1_done and is_fighter2_done:
+							break
 
+					# print(row['F1Id'], row['F2Id'])
+					# print(result)
+					# print()
 					# no prior match history, only need to consider current statistics
 					if result is None or len(result) == 0:
 						result = row
 					else:
-						# sum up prior statistics with current one
-						for key, value in row.items():
-							if (key.startswith('F1') or key.startswith('F2')) and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
-								result[key] += value
-							else:
-								result[key] = value
+
+						if 'F1SDBL' not in result: # fighter 1's history was not found
+							for key, value in row.items():
+								if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+									result[key] += value
+								else:
+									result[key] = value
+
+						elif 'F2SDBL' not in result: # fighter 2's history was not found
+							for key, value in row.items():
+								if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+									result[key] += value
+								else:
+									result[key] = value
+
+						else:
+							# sum up prior statistics with current one
+							for key, value in row.items():
+								if (key.startswith('F1') or key.startswith('F2')) and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+									result[key] += value
+								else:
+									result[key] = value
 
 				except Exception as e:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
