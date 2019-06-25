@@ -887,7 +887,7 @@ class UFCHistoryDB:
 
 			print(f'{len(result)} matches are registered!')
 
-			# code for test to see if pickling and unpickling work fine
+			# code for test unpickling
 			# unpickled_data = UFCHistoryDB.read_pickle_file()
 			# for row in unpickled_data:
 			# 	print(row)
@@ -926,84 +926,55 @@ class UFCHistoryDB:
 
 				try:
 
-					result = Counter()
-					# get sum of fighter 1 statistics for all corresponding f1 statistics
-					try:
-						for d in [r for r in rows if ('F1Id' in r) and (r['F1Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F1Id']
-							for key, value in d.items():
-								if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
-									result[key] += value
-								else:
-									result[key] = value
-					except Exception as e:
-						print(f'Exception while doing sum.Fighter1: {str(e)}')
+					result = None
 					
-					# get sum of fighter 1 statistics for all corresponding f2 statistics
-					try:
-						for d in [r for r in rows if ('F1Id' in r) and (r['F2Id'] == row['F1Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F1Id']
-							for key, value in d.items():
-								if key.startswith('F2') and key != 'F2Id' and key != 'F2Name' and key != 'F2Age' and key != 'F2Height' and key != 'F2Reach':
-									result[key.replace('F2', 'F1')] += value
-					except Exception as e:
-						print(f'Exception while doing sum.Fighter2: {str(e)}')
-					
+					is_fighter1_done = False
+					is_fifhger2_done = False
 
-					# # get sum of fighter 2 statistics for all corresponding f1 statistics
-					# for d in [r for r in rows if ('F2Id' in r) and (r['F1Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F2Id']
-					# 	for key, value in d.items():
-					# 		if key.startswith('F1') and key != 'F1Id' and key != 'F1Name' and key != 'F1Age' and key != 'F1Height' and key != 'F1Reach':
-					# 			result[key.replace('F1', 'F2')] += value
+					# seek for the last matching match history of both fighters(fighter1 and fighter2) in reversed order
+					# make sure that the source list is already sorted by date
+					for r in reversed(rows_):
+						if not is_fighter1_done: # need to seek for fighter 1's last history
+							if r['F1Id'] == row['F1Id']:
+								for key, value in r.items():
+									if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+										result[key] = value
 
-					# # # get sum of fighter 2 statistics for all corresponding f2 statistics
-					# for d in [r for r in rows if ('F2Id' in r) and (r['F2Id'] == row['F2Id']) and (DT.strptime(r['Date'], '%Y-%m-%d').date() < DT.strptime(row['Date'], '%Y-%m-%d').date())]: #  or r['F2Id'] == row['F2Id']
-					# 	for key, value in d.items():
-					# 		if key.startswith('F2') and key != 'F2Id' and key != 'F2Name' and key != 'F2Age' and key != 'F2Height' and key != 'F2Reach':
-					# 			result[key] += value
+								is_fighter1_done = True
 
-					for key, value in row.items():
-						if (key.startswith('F1') or key.startswith('F2')) and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
-							result[key] += value
-						else:
-							result[key] = value
+							if r['F2Id'] == row['F1id']:
+								for key, value in r.items():
+									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+										result[key.replace('F2', 'F1')] = value	
+
+								is_fighter1_done = True
+
+						if not is_fifhger2_done: # need to seek for fighter 2's last history
+							if r['F1Id'] == row['F2Id']:
+								for key, value in r.items():
+									if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+										result[key.replace('F1', 'F2')] = value
+
+								is_fighter2_done = True
+
+							if r['F2Id'] == row['F2id']:
+								for key, value in r.items():
+									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+										result[key] = value
+
+								is_fighter2_done = True
 
 
-						# row['F2SDBL'] = row['F2SDBL'] + d['F2SDBL']
-						# row['F2SDBA'] = row['F2SDBA'] + d['F2SDBA']
-						# row['F2SDHL'] = row['F2SDHL'] + d['F2SDHL']
-						# row['F2SDHA'] = row['F2SDHA'] + d['F2SDHA']
-						# row['F2SDLL'] = row['F2SDLL'] + d['F2SDLL']
-						# row['F2SDLA'] =  row['F2SDLA'] + d['F2SDLA']
-						# row['F2TSL'] = row['F2TSL'] + d['F2TSL']
-						# row['F2TSA'] = row['F2TSA'] + d['F2TSA']
-						# row['F2SSL'] = row['F2SSL'] + d['F2SSL']
-						# row['F2SSA'] = row['F2SSA'] + d['F2SSA']
-						# row['F2SA'] = row['F2SA'] + d['F2SA']
-						# row['F2KD'] = row['F2KD'] + d['F2KD']
-
-						# row['F2SCBL'] = row['F2SCBL'] + d['F2SCBL']
-						# row['F2SCBA'] = row['F2SCBA'] + d['F2SCBA']
-						# row['F2SCHL'] = row['F2SCHL'] + d['F2SCHL']
-						# row['F2SCHA'] = row['F2SCHA'] + d['F2SCHA']
-						# row['F2SCLL'] = row['F2SCLL'] + d['F2SCLL']
-						# row['F2SCLA'] = row['F2SCLA'] + d['F2SCLA']
-						# row['F2RV'] = row['F2RV'] + d['F2RV']
-						# row['F2SR'] = row['F2SR'] + d['F2SR']
-						# row['F2TDL'] = row['F2TDL'] + d['F2TDL']
-						# row['F2TDA'] = row['F2TDA'] + d['F2TDA']
-						# row['F2TDS'] = row['F2TDS'] + d['F2TDS']
-
-						# row['F2SGBL'] = row['F2SGBL'] + d['F2SGBL']
-						# row['F2SGBA'] = row['F2SGBA'] + d['F2SGBA']
-						# row['F2SGHL'] = row['F2SGHL'] + d['F2SGHL']
-						# row['F2SGHA'] = row['F2SGHA'] + d['F2SGHA']
-						# row['F2SGLL'] = row['F2SGLL'] + d['F2SGLL']
-						# row['F2SGLA'] = row['F2SGLA'] + d['F2SGLA']
-						# row['F2AD'] = row['F2AD'] + d['F2AD']
-						# row['F2ADTB'] = row['F2ADTB'] + d['F2ADTB']
-						# row['F2ADHG'] = row['F2ADHG'] + d['F2ADHG']
-						# row['F2ADTM'] = row['F2ADTM'] + d['F2ADTM']
-						# row['F2ADTS'] = row['F2ADTS'] + d['F2ADTS']
-						# row['F2SM'] = row['F2SM'] + d['F2SM']
+					# no prior match history, only need to consider current statistics
+					if result is None or len(result) == 0:
+						result = row
+					else:
+						# sum up prior statistics with current one
+						for key, value in row.items():
+							if (key.startswith('F1') or key.startswith('F2')) and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
+								result[key] += value
+							else:
+								result[key] = value
 
 				except Exception as e:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
