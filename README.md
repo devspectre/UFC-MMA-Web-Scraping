@@ -1,27 +1,23 @@
 # mma_scraper
-<<<<<<< HEAD
+HEAD
 Get rich history of mma fights
 
 # Dependency
 Python: 3
 
 Modules: BeautifulSoup, requests, string
-=======
 Get rich history mma fights and output to excel
 
 # Dependency
 Python: 3
 Modules: BeautifulSoup, requests, sqlite3, xlsxwriter, string, threading, datetime, signal, progressbar, sys, getopt
->>>>>>> 8799081531973d5d4cb9e46565fbe7791e29fa7a
 
 # Run
 Make sure you've installed those dependencies.
 Run the script in command line.
 
-<<<<<<< HEAD
-=======
 - default mode:
->>>>>>> 8799081531973d5d4cb9e46565fbe7791e29fa7a
+
 python main.py
 
 python main.py -m <mode_number>
