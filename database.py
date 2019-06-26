@@ -591,20 +591,20 @@ class UFCHistoryDB:
 			dictionary = {}
 
 			# General Info (From Fight History Page)
-			dictionary['Date'] = row[0]
-			dictionary['WeightClass'] = row[1]
+			dictionary['Date'] = row[0].strip()
+			dictionary['WeightClass'] = row[1].strip() if row[1] is not None else None
 
 			if row[13] == 'Win':
-				dictionary['Winner'] = row[7]
+				dictionary['Winner'] = row[7].strip()
 			elif row[13] == 'Loss':
-				dictionary['Winner'] = row[12]
+				dictionary['Winner'] = row[12].strip()
 			else:
 				dictionary['Winner'] = ''
 
-			dictionary['DecisionType'] = row[2]
+			dictionary['DecisionType'] = row[2].strip()
 			dictionary['Rounds'] = row[3]
-			dictionary['Time'] = row[4]
-			dictionary['IsTitle?'] = row[5]
+			dictionary['Time'] = row[4].strip()
+			dictionary['IsTitle?'] = row[5].strip()
 
 			# Fighter 1 General Information
 
@@ -622,9 +622,10 @@ class UFCHistoryDB:
 								FROM StandingStatistics, ClinchStatistics, GroundStatistics 
 								WHERE StandingStatistics.id=? AND ClinchStatistics.id=? AND GroundStatistics.id=? 
 								AND StandingStatistics.match_date=? AND ClinchStatistics.match_date=? AND GroundStatistics.match_date=?
+								AND StandingStatistics.opp_url=? AND ClinchStatistics.opp_url=? AND GroundStatistics.opp_url=?
 			"""
 
-			val = (row[6], row[6], row[6], row[0], row[0], row[0])
+			val = (row[6], row[6], row[6], row[0], row[0], row[0], row[14], row[14], row[14])
 
 			try:
 				sql_result = cursor.execute(sql, val).fetchone()
@@ -748,9 +749,10 @@ class UFCHistoryDB:
 								FROM StandingStatistics, ClinchStatistics, GroundStatistics 
 								WHERE StandingStatistics.id=? AND ClinchStatistics.id=? AND GroundStatistics.id=? 
 								AND StandingStatistics.match_date=? AND ClinchStatistics.match_date=? AND GroundStatistics.match_date=?
+								AND StandingStatistics.opp_url=? AND ClinchStatistics.opp_url=? AND GroundStatistics.opp_url=?
 			"""
 
-			val = (dictionary['F2Id'], dictionary['F2Id'], dictionary['F2Id'], row[0], row[0], row[0])
+			val = (dictionary['F2Id'], dictionary['F2Id'], dictionary['F2Id'], row[0], row[0], row[0], row[11], row[11], row[11])
 
 			try:
 				sql_result = cursor.execute(sql, val).fetchone()
@@ -855,14 +857,16 @@ class UFCHistoryDB:
 			print('All threads are finished!')
 
 			# get rid of duplicates
-			done = set()
+			done = []
 			result = []
 			for row in self.rows_for_schema:
 				if 'Date' not in row: # skip over empty row
 					continue
-				d = tuple((row['Date'], row['Winner']))
+				# NOTE: need to pay attention to picking those keys to remove duplicates 
+				# 		and not to remove different matches on the same date
+				d = (row['Date'], row['Winner'], row['Time'])
 				if d not in done:
-					done.add(d)
+					done.append(d)
 					result.append(row)
 
 			# sort list by date
