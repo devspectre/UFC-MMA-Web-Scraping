@@ -4,12 +4,6 @@ Get rich history of mma fights
 
 # Dependency
 Python: 3
-
-Modules: BeautifulSoup, requests, string
-Get rich history mma fights and output to excel
-
-# Dependency
-Python: 3
 Modules: BeautifulSoup, requests, sqlite3, xlsxwriter, string, threading, datetime, signal, progressbar, sys, getopt
 
 # Run
@@ -17,7 +11,6 @@ Make sure you've installed those dependencies.
 Run the script in command line.
 
 - default mode:
-
 python main.py
 
 python main.py -m <mode_number>
