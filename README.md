@@ -1,5 +1,4 @@
 # mma_scraper
-HEAD
 Get rich history of mma fights
 
 # Dependency
