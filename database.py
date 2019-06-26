@@ -939,14 +939,14 @@ class UFCHistoryDB:
 					# make sure that the source list is already sorted by date
 					for r in reversed(rows_):
 						if not is_fighter1_done: # need to seek for fighter 1's last history
-							if r['F1Id'] == row['F1Id']:
+							if r['F1Id'] == row['F1Id'] and not (r['Date'] == row['Date'] and r['Winner'] == row['Winner'] and r['Time'] == row['Time']):
 								for key, value in r.items():
 									if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key] = value
 
 								is_fighter1_done = True
 
-							if r['F2Id'] == row['F1Id']:
+							if r['F2Id'] == row['F1Id'] and not (r['Date'] == row['Date'] and r['Winner'] == row['Winner'] and r['Time'] == row['Time']):
 								for key, value in r.items():
 									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key.replace('F2', 'F1')] = value	
@@ -954,14 +954,14 @@ class UFCHistoryDB:
 								is_fighter1_done = True
 
 						if not is_fighter2_done: # need to seek for fighter 2's last history
-							if r['F1Id'] == row['F2Id']:
+							if r['F1Id'] == row['F2Id'] and not (r['Date'] == row['Date'] and r['Winner'] == row['Winner'] and r['Time'] == row['Time']):
 								for key, value in r.items():
 									if key.startswith('F1') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key.replace('F1', 'F2')] = value
 
 								is_fighter2_done = True
 
-							if r['F2Id'] == row['F2Id']:
+							if r['F2Id'] == row['F2Id'] and not (r['Date'] == row['Date'] and r['Winner'] == row['Winner'] and r['Time'] == row['Time']):
 								for key, value in r.items():
 									if key.startswith('F2') and not (key.endswith('Name') or key.endswith('Height') or key.endswith('Reach') or key.endswith('Reach') or key.endswith('Age') or key.endswith('Id')):
 										result[key] = value
@@ -971,9 +971,6 @@ class UFCHistoryDB:
 						if is_fighter1_done and is_fighter2_done:
 							break
 
-					# print(row['F1Id'], row['F2Id'])
-					# print(result)
-					# print()
 					# no prior match history, only need to consider current statistics
 					if result is None or len(result) == 0:
 						result = row
@@ -1005,9 +1002,10 @@ class UFCHistoryDB:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
 					continue
 
-				if row['F1Id'] == 8011 or row['F2Id'] == 8011:
-					royce_list.append(row)
-					royce_sum.append(result)
+				# royce gracie for test
+				# if row['F1Id'] == 8011 or row['F2Id'] == 8011:
+				# 	royce_list.append(row)
+				# 	royce_sum.append(result)
 
 				rows_.append(result)
 				# update progress bar
@@ -1264,12 +1262,6 @@ class UFCHistoryDB:
 		print(f'Retrieved {len(data_list)} rows from pickled file.') # log
 
 		return data_list
-
-	def get_sum_up_to_point(self, db_name = 'match_history.db'):
-		""" get sum of each value of statistics up to the point
-		param rows: 
-		"""
-
 
 	def get_rows_for_schema(self):
 		""" get all rows to be written to the excel file
