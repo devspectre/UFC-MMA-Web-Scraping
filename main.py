@@ -183,8 +183,6 @@ def get_general_info(soup):
 	info_list['height'] = height
 	info_list['weight'] = weight
 	info_list['group_name'] = group_name
-	# print(f'Name={name}, WC={weight_class}, Height={height}, Weight={weight}, Age={age}, Reach={reach}, Group={group}')
-	# print()
 
 	return info_list
 
@@ -584,12 +582,6 @@ if __name__ == "__main__":
 		""" defines how to split list into threads
 		value 'alphabet': all urls of fighters whose name starts with a unique alphabet goes into a single thread
 		value 'specify_count_per_thread': every thread contains only specified number of urls
-
-		NOTE: 	Confirm that 'specify_count_per_thread' mode does not cause DOS(Denial of service)
-				Current site has got 23821 fighters' information.
-				Making a lot of concurrent requests to the site might cause DOS
-				I am sure that it won't happen in this case -  23821 requests in total.
-				But also, network bandwith is another issue though
 		"""
 
 		thread_distribution_mode = 'specify_count_per_thread'
