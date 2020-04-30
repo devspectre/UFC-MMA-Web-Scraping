@@ -3,7 +3,10 @@ Get rich history of mma fights
 
 # Dependency
 Python: 3
-Modules: BeautifulSoup, requests, sqlite3, xlsxwriter, string, threading, datetime, signal, progressbar, sys, getopt
+Modules: BeautifulSoup, requests, sqlite3, xlsxwriter, string, threading, datetime, signal, progressbar
+
+`pip install -r requirements.txt
+`
 
 # Run
 Make sure you've installed those dependencies.

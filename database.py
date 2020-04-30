@@ -256,7 +256,7 @@ class UFCHistoryDB:
 				, data['weight_class'], data['reach'], data['group_name'])
 		except Exception as e:
 			print("Error(DB.Fighters): ", str(e))
-			# pass
+			return
 
 		if val != None:
 			try:
@@ -290,6 +290,7 @@ class UFCHistoryDB:
 						, item['DECISION'], item['RND'], item['TIME'])
 			except Exception as e:
 				print("Error(DB.History): ", str(e))
+				continue
 
 			if val != None:
 				try:
@@ -324,6 +325,7 @@ class UFCHistoryDB:
 						, item['TSL'], item['TSA'], item['SSL'], item['SA'], item['KD'], item['PERCENTBODY'], item['PERCENTHEAD'], item['PERCENTLEG'])
 			except Exception as e:
 				print("Error(DB.StandingStatistics): ", str(e))
+				continue
 
 			if val != None:
 				try:
@@ -358,6 +360,7 @@ class UFCHistoryDB:
 						, item['SCHA'], item['SCLL'], item['SCLA'], item['RV'], item['SR'], item['TDL'], item['TDA'], item['TDS'], item['TDPERCENT'])
 			except Exception as e:
 				print("Error(DB.ClinchStatistics): ", str(e))
+				continue
 
 			if val != None:
 				try:
@@ -392,6 +395,7 @@ class UFCHistoryDB:
 						, item['SGHA'], item['SGLL'], item['SGLA'], item['AD'], item['ADTB'], item['ADHG'], item['ADTM'], item['ADTS'], item['SM'])
 			except Exception as e:
 				print("Error(DB.GroundStatistics): ", str(e))
+				continue
 
 			if val != None:
 				try:
@@ -1001,11 +1005,6 @@ class UFCHistoryDB:
 				except Exception as e:
 					print(f'Exception while getting sums(DB.write_match_history_to_db): {str(e)}')
 					continue
-
-				# royce gracie for test
-				# if row['F1Id'] == 8011 or row['F2Id'] == 8011:
-				# 	royce_list.append(row)
-				# 	royce_sum.append(result)
 
 				rows_.append(result)
 				# update progress bar
