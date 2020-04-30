@@ -4,6 +4,7 @@ Get rich history mma fights and output to excel
 # Dependency
 Python: 3
 Modules: BeautifulSoup, requests, sqlite3, xlsxwriter, string, threading, datetime, signal, progressbar
+
 `pip install -r requirements.txt
 `
 
