@@ -17,10 +17,10 @@ class UFCHistoryDB:
 
 	def __init__(self, db_file, delete_if_exists = False, sub_folder = None):
 		""" constructor 
-		param db_file: database file name
-		param delete_if_exists: True: delete 'db_file' if it already exists, False: do nothing
-		param sub_folder: create a subdirectory 'sub_folder' and create database file in it
-		return:
+		:param db_file: database file name
+		:param delete_if_exists: True: delete 'db_file' if it already exists, False: do nothing
+		:param sub_folder: create a subdirectory 'sub_folder' and create database file in it
+		:return:
 		"""
 
 		self.path_ = ''
