@@ -15,18 +15,18 @@ from excel import ExcelWriter
 
 def list_to_string(list_, delimiter):
 	""" returns a string from given list joined with given delimiter
-	param list_: source list
-	param delimiter: delimiter which goes between strings to combine them into a string
-	return: a string which is combined with all strings in the list by delimiter
+	:param list_: source list
+	:param delimiter: delimiter which goes between strings to combine them into a string
+	:return: a string which is combined with all strings in the list by delimiter
 	"""
 
 	return f'{delimiter}'.join(str(element) for element in list_)
 
 def get_page_url(url, page_name):
 	""" this function retrieve url of fighter's stat page from profile url.
-	param url: profile url
-	param page_name: string to represent page name
-	return: url of desired page
+	:param url: profile url
+	:param page_name: string to represent page name
+	:return: url of desired page
 	"""
 	
 	prefix = url.split('/')[:5]
@@ -47,8 +47,8 @@ def get_page_url(url, page_name):
 def get_fighter_url_list_startwith(start_ch):
 	""" returns a list of urls
 		urls of all fighters whose name start with start_ch
-	param start_ch: a character which is at the very first of names
-	return: list of fighters whose names starts with 'start_ch'
+	:param start_ch: a character which is at the very first of names
+	:return: list of fighters whose names starts with 'start_ch'
 	"""
 
 	source = requests.get(f'http://www.espn.com/mma/fighters?search={start_ch}').text
@@ -76,8 +76,8 @@ def get_fighter_url_list_startwith(start_ch):
 
 def get_general_info(soup):
 	""" returns a dictionary of fighter's general info
-	param soup: soup object
-	return: dictionary of general info
+	:param soup: soup object
+	:return: dictionary of general info
 	"""
 	
 	# initialize info dictionary
@@ -189,8 +189,8 @@ def get_general_info(soup):
 def get_history_info(soup):
 	""" returns a list of sub lists
 		each sub list contains match _date, event, opponent, result, decision, rounds and time
-	param soup: soup object
-	return: list of dictionaries, each dictionary contains a single match info
+	:param soup: soup object
+	:return: list of dictionaries, each dictionary contains a single match info
 	"""
 
 	# get fight history information from the table
@@ -237,8 +237,8 @@ def get_history_info(soup):
 
 def get_statistics(soup):
 	""" get standing statistics on stats page and returns a list of records
-	param soup: soup object
-	return: three lists - standing statistics, clinch statistics and ground statistics
+	:param soup: soup object
+	:return: three lists - standing statistics, clinch statistics and ground statistics
 	"""
 	standing_list = []
 	clinch_list = []
@@ -368,8 +368,8 @@ def get_statistics(soup):
 
 def read_db_and_write_to_excel():
 	""" get necessary data from database and output into database
-	param: None
-	return: None
+	:param: None
+	:return: None
 	"""
 
 	# create a DB instance
@@ -385,9 +385,9 @@ def read_db_and_write_to_excel():
 
 def fetch_information(start_id, url_list, key):
 	""" iterate over url_list, send get request per each url, scrap data and write data into database
-	param start_id: starting point of unique id of fighter on url_list
-	param url_list: list of fighter urls 
-	param key: first character of fighters' names
+	:param start_id: starting point of unique id of fighter on url_list
+	:param url_list: list of fighter urls 
+	:param key: first character of fighters' names
 	"""
 
 	# total number of fighter information from all threads
@@ -497,8 +497,8 @@ def fetch_information(start_id, url_list, key):
 def signal_handler(sig, frame):
 	""" Signal handler
 		This will prevent to show complicated text of exceptions on keyboard interrupt
-	param sig: signal identifier
-	param frame:
+	:param sig: signal identifier
+	:param frame:
 	return:
 	"""
 
@@ -508,8 +508,8 @@ def signal_handler(sig, frame):
 
 def parse_args(argv):
 	""" main function to handle argument parsing and do actual work
-	param argv: list of argument
-	return: mode as a single digit
+	:param argv: list of argument
+	:return: mode as a single digit
 	"""
 
 	# value 0: default mode | scrap >> write_to_database >> output to excel
