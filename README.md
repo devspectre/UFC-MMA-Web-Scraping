@@ -24,5 +24,5 @@ mode_number:
             
             1: scrap >> write_to_database'
             
-            2: output to excel based on already existing databse
+            2: output to excel based on already existing database, test purpose
 
