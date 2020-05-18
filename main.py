@@ -13,7 +13,7 @@ from excel import ExcelWriter
 # # global variable for progressbar
 # bar = None
 
-def list_to_string(list_, delimiter):
+def list_to_string(list_: list, delimiter: str) -> str:
 	""" returns a string from given list joined with given delimiter
 	:param list_: source list
 	:param delimiter: delimiter which goes between strings to combine them into a string
@@ -22,7 +22,7 @@ def list_to_string(list_, delimiter):
 
 	return f'{delimiter}'.join(str(element) for element in list_)
 
-def get_page_url(url, page_name):
+def get_page_url(url: str, page_name: str) -> str:
 	""" this function retrieve url of fighter's stat page from profile url.
 	:param url: profile url
 	:param page_name: string to represent page name
@@ -44,7 +44,7 @@ def get_page_url(url, page_name):
 
 	return  prefix_str + '/' + page_name + '/' + suffix_str
 
-def get_fighter_url_list_startwith(start_ch):
+def get_fighter_url_list_startwith(start_ch: str) -> list:
 	""" returns a list of urls
 		urls of all fighters whose name start with start_ch
 	:param start_ch: a character which is at the very first of names
@@ -74,7 +74,7 @@ def get_fighter_url_list_startwith(start_ch):
 
 	return fighter_list
 
-def get_general_info(soup):
+def get_general_info(soup) -> dict:
 	""" returns a dictionary of fighter's general info
 	:param soup: soup object
 	:return: dictionary of general info
@@ -186,7 +186,7 @@ def get_general_info(soup):
 
 	return info_list
 
-def get_history_info(soup):
+def get_history_info(soup) -> list:
 	""" returns a list of sub lists
 		each sub list contains match _date, event, opponent, result, decision, rounds and time
 	:param soup: soup object
@@ -494,7 +494,7 @@ def fetch_information(start_id, url_list, key):
 
 		print('Done!')
 
-def signal_handler(sig, frame):
+def signal_handler(sig: int, frame):
 	""" Signal handler
 		This will prevent to show complicated text of exceptions on keyboard interrupt
 	:param sig: signal identifier
