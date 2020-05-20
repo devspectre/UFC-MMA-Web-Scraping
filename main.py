@@ -20,7 +20,7 @@ def list_to_string(list_: list, delimiter: str) -> str:
 	:return: a string which is combined with all strings in the list by delimiter
 	"""
 
-	return f'{delimiter}'.join(str(element) for element in list_)
+	return delimiter.join(str(element) for element in list_)
 
 def get_page_url(url: str, page_name: str) -> str:
 	""" this function retrieve url of fighter's stat page from profile url.
