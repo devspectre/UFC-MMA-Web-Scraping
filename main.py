@@ -499,7 +499,7 @@ def signal_handler(sig: int, frame):
 		This will prevent to show complicated text of exceptions on keyboard interrupt
 	:param sig: signal identifier
 	:param frame:
-	return:
+	:return:
 	"""
 
 	print(f'SIGNAL {sig} CAUGHT.')

@@ -103,9 +103,9 @@ class ExcelWriter:
 		'F2SM'
 	]
 
-	def __init__(self, xl_file):
+	def __init__(self, xl_file: str):
 		""" constructor
-		param xl_file: excel file name
+		:param xl_file: excel file name
 		"""
 
 		# file name
@@ -117,10 +117,10 @@ class ExcelWriter:
 		# create a new sheet for the workbook
 		self.sheet = self.wb.add_worksheet('Sheet 1')
 
-	def set_header_list(self, h_list):
+	def set_header_list(self, h_list: list):
 		""" set the header list of instance
-		param h_list: list of header labels !NOTE: make sure this matches with actual data
-		return:
+		:param h_list: list of header labels !NOTE: make sure this matches with actual data
+		:return:
 		"""
 
 		# create a format for merged cell
@@ -151,12 +151,12 @@ class ExcelWriter:
 			self.sheet.write(3, col, label)
 			col += 1
 
-	def write_to_sheet(self, row_id, col_id, value):
+	def write_to_sheet(self, row_id: int, col_id: int, value: str):
 		""" write 'value' to the sheet at (row_id, col_id)
-		param row_id(int): index of row on the sheet
-		param col_id(int): index of column on the sheet
-		param value(string): actual data to be written on the sheet
-		return: true if successful or false in case of failure
+		:param row_id: index of row on the sheet
+		:param col_id: index of column on the sheet
+		:param value: actual data to be written on the sheet
+		:return: true if successful or false in case of failure
 		"""
 
 		try:
